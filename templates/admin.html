@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Global Car | Admin Portal</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              "gc-blue": "#0033A0",
+              "gc-orange": "#FF6600",
+            },
+          },
+        },
+      };
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <style>
+      body { font-family: "Outfit", sans-serif; }
+      @keyframes spinGrow {
+        0% { transform: scale(0) rotate(0deg); }
+        100% { transform: scale(1) rotate(360deg); }
+      }
+      .logo-spin-grow {
+        animation: spinGrow 1s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        transform-origin: center;
+      }
+    </style>
+  </head>
+  <body class="bg-gray-50 text-gray-900">
+
+<div class="min-h-screen bg-gray-50 pb-20 pt-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <!-- Header -->
+        <div class="mb-12 flex flex-col md:flex-row justify-between items-center bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
+            <div class="flex items-center gap-4">
+                <img src="{{ url_for('static', filename='images/Logo_Vector_Recreado.svg') }}" alt="Global Car" class="h-12 w-auto object-contain logo-spin-grow">
+                <div>
+                    <h1 class="text-3xl font-black text-gray-900 tracking-tight">Portal de Administración</h1>
+                    <p class="text-md text-gray-500 mt-1 font-medium">Gestión del Inventario de Global Car</p>
+                </div>
+            </div>
+            <div class="flex gap-4 mt-4 md:mt-0">
+                <a href="/admin/inventory" class="text-gc-blue font-bold px-6 py-3 rounded-xl hover:bg-blue-50 transition-colors border-2 border-transparent hover:border-blue-100">
+                    Administrar Catálogo
+                </a>
+                <a href="/" target="_blank" class="bg-gray-100 text-gray-900 px-6 py-3 rounded-xl font-bold hover:bg-gray-200 transition-colors shadow-sm outline-none flex items-center gap-2">
+                    Ver Tienda <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                </a>
+                <a href="{{ url_for('logout') }}" class="bg-gray-900 text-white px-8 py-3 rounded-xl font-bold hover:bg-black transition-colors shadow-md outline-none block text-center">
+                    Cerrar Sesión
+                </a>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-3xl shadow-[0_15px_50px_rgba(0,0,0,0.05)] border border-gray-100 overflow-hidden flex flex-col lg:flex-row">
+            
+            <!-- LEFT: Drag and drop zone -->
+            <div class="w-full lg:w-1/2 p-8 lg:p-12 bg-gray-50/50 border-b lg:border-b-0 lg:border-r border-gray-200">
+                <div class="mb-8">
+                    <h2 class="text-2xl font-black text-gray-900 mb-2">Fotos del Vehículo</h2>
+                    <p class="text-gray-500 font-medium">Sube exactamente 4 imágenes de alta calidad (JPG o PNG).</p>
+                </div>
+                
+                <!-- Zone -->
+                <div class="w-full h-96 border-4 border-dashed border-gray-300 rounded-3xl flex flex-col items-center justify-center text-center p-8 bg-white hover:bg-gray-50 hover:border-gc-blue transition-colors cursor-pointer group relative overflow-hidden" id="drop-zone">
+                    <input type="file" id="file-input" multiple accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
+                    
+                    <div class="bg-blue-50 w-20 h-20 rounded-full flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                        <svg class="w-10 h-10 text-gc-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                    </div>
+                    <p class="text-gray-800 font-black text-2xl tracking-tight">Arrastra las fotos aquí</p>
+                    <p class="text-gray-500 text-lg mt-2 mb-6 font-medium">o haz clic para explorar en el dispositivo</p>
+                    
+                    <!-- Botón para móviles -->
+                    <button class="md:hidden bg-gc-blue text-white px-8 py-4 rounded-full font-bold shadow-lg w-full outline-none">
+                        📸 Abrir Cámara / Galería
+                    </button>
+                </div>
+
+                <!-- Preview Grid (4 slots fijos) -->
+                <div class="grid grid-cols-4 gap-4 mt-8" id="preview-grid">
+                    <div class="aspect-square bg-white rounded-2xl border-2 border-gray-200 border-dashed flex items-center justify-center text-gray-400 text-2xl font-black shadow-sm">1</div>
+                    <div class="aspect-square bg-white rounded-2xl border-2 border-gray-200 border-dashed flex items-center justify-center text-gray-400 text-2xl font-black shadow-sm">2</div>
+                    <div class="aspect-square bg-white rounded-2xl border-2 border-gray-200 border-dashed flex items-center justify-center text-gray-400 text-2xl font-black shadow-sm">3</div>
+                    <div class="aspect-square bg-white rounded-2xl border-2 border-gray-200 border-dashed flex items-center justify-center text-gray-400 text-2xl font-black shadow-sm">4</div>
+                </div>
+            </div>
+
+            <!-- RIGHT: Formulario -->
+            <div class="w-full lg:w-1/2 p-8 lg:p-12">
+                <h2 class="text-2xl font-black text-gray-900 mb-8">Detalles del Vehículo</h2>
+                
+                <form class="space-y-8" id="upload-form">
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 uppercase tracking-widest mb-3">Marca</label>
+                            <div class="relative">
+                                <select id="marca-select" name="make" class="w-full px-6 py-4 rounded-2xl border-2 border-gray-200 focus:ring-4 focus:ring-gc-blue/20 focus:border-gc-blue outline-none transition-all appearance-none text-lg font-medium bg-gray-50 focus:bg-white cursor-pointer text-gray-900">
+                                    <option value="" disabled selected>Selecciona la marca</option>
+                                    <!-- Options loaded by JS -->
+                                </select>
+                                <svg class="w-6 h-6 absolute right-6 top-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path></svg>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 uppercase tracking-widest mb-3">Modelo</label>
+                            <input type="text" placeholder="Ej. Corolla Cross" class="w-full px-6 py-4 rounded-2xl border-2 border-gray-200 focus:ring-4 focus:ring-gc-blue/20 focus:border-gc-blue outline-none transition-all text-lg font-medium bg-gray-50 focus:bg-white text-gray-900">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 uppercase tracking-widest mb-3">Año</label>
+                            <input type="number" placeholder="2026" class="w-full px-6 py-4 rounded-2xl border-2 border-gray-200 focus:ring-4 focus:ring-gc-blue/20 focus:border-gc-blue outline-none transition-all text-lg font-medium bg-gray-50 focus:bg-white text-gray-900">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 uppercase tracking-widest mb-3">Precio ($ USD)</label>
+                            <div class="relative">
+                                <span class="absolute left-6 top-4 text-gray-500 font-bold text-lg">$</span>
+                                <input type="number" placeholder="33000" class="w-full pl-10 pr-6 py-4 rounded-2xl border-2 border-gray-200 focus:ring-4 focus:ring-gc-blue/20 focus:border-gc-blue outline-none transition-all text-lg font-bold bg-gray-50 focus:bg-white text-gray-900">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 uppercase tracking-widest mb-3">Estado del Vehículo</label>
+                        <div class="relative">
+                            <select class="w-full px-6 py-4 rounded-2xl border-2 border-gray-200 focus:ring-4 focus:ring-gc-blue/20 focus:border-gc-blue outline-none transition-all appearance-none text-lg font-bold bg-gray-50 focus:bg-white cursor-pointer" id="status-select">
+                                <option value="available" class="text-gc-orange">🟢 Disponible</option>
+                                <option value="transit" class="text-gc-blue">🔵 En Tránsito (100 días)</option>
+                                <option value="sold" class="text-gray-500">⚫ Vendido</option>
+                            </select>
+                            <svg class="w-6 h-6 absolute right-6 top-4 text-gray-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path></svg>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 uppercase tracking-widest mb-3">Descripción / Notas Adicionales</label>
+                        <textarea rows="4" placeholder="Ej. Automático, 750km de rango, 3 cilindros..." class="w-full px-6 py-4 rounded-2xl border-2 border-gray-200 focus:ring-4 focus:ring-gc-blue/20 focus:border-gc-blue outline-none transition-all resize-none text-lg font-medium bg-gray-50 focus:bg-white text-gray-900"></textarea>
+                    </div>
+
+                    <div class="pt-8 mt-8 border-t-2 border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-6">
+                        <span class="text-sm text-gc-orange font-bold flex items-center">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            Todos los campos son obligatorios
+                        </span>
+                        <button type="submit" class="bg-gc-blue text-white px-10 py-5 rounded-2xl font-black uppercase tracking-widest hover:bg-blue-800 shadow-[0_10px_20px_rgba(0,51,160,0.4)] hover:shadow-[0_15px_30px_rgba(0,51,160,0.6)] hover:-translate-y-1 transition-all w-full sm:w-auto text-lg outline-none">
+                            Guardar en Catálogo
+                        </button>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+        
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+</body>
+</html>

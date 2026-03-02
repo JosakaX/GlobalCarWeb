@@ -1,0 +1,53 @@
+# Archivos de Entorno y Secretos (¡CRÍTICO!)
+.env
+.env.local
+.env.*.local
+
+# Byte-compiled / optimized / DLL files de Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Entornos Virtuales
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Archivos de Bases de Datos SQLite (si se usaran en el futuro)
+*.sqlite3
+
+# Archivos del Sistema Operativo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDEs y Editores de Código
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Distribución / Empaquetado
+dist/
+build/
+*.egg-info/
+
+# Logs
+*.log
+
+# ----------------------------------------------------------------------
+# Archivos de Pruebas y Scripts Temporales
+populate_db.py
+analyze_colors.py
+viewer.html
+ver_logo.html
+
+# (Opcional) Ignorar archivos de imágenes/videos locales de los usuarios
+# Descomenta las líneas de abajo si subes mucho contenido multimedia local 
+# y no quieres que pese demasiado el repositorio de GitHub.
+# ----------------------------------------------------------------------
+# static/images/vehicles/*
+# static/images/logos/*
+# !static/images/vehicles/.gitkeep

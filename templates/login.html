@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Global Car | Admin Login</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              "gc-blue": "#0033A0",
+              "gc-orange": "#FF6600",
+            },
+          },
+        },
+      };
+    </script>
+    <!-- GSAP for Premium Animations -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <style>
+      body { font-family: "Outfit", sans-serif; }
+      @keyframes shine {
+          100% { transform: translateX(150%); }
+      }
+      @keyframes spinGrow {
+        0% { transform: scale(0) rotate(0deg); opacity: 0; }
+        99% { transform: scale(1) rotate(360deg); opacity: 1; }
+        100% { transform: none; opacity: 1; }
+      }
+      .logo-spin-grow {
+        animation: spinGrow 1s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+      }
+    </style>
+  </head>
+  <body class="bg-black text-white antialiased">
+    <section class="h-[100vh] min-h-[600px] w-full flex items-center justify-center bg-gradient-to-br from-[#001736] via-[#000a18] to-black relative overflow-hidden">
+        <!-- Decorative Blurs and Lights -->
+        <div class="absolute top-0 right-0 w-[50vw] h-[50vw] bg-gc-blue/10 rounded-full blur-[100px] pointer-events-none -translate-y-1/2 translate-x-1/2"></div>
+        <div class="absolute bottom-0 left-0 w-[40vw] h-[40vw] bg-gc-orange/5 rounded-full blur-[100px] pointer-events-none translate-y-1/2 -translate-x-1/2"></div>
+        <!-- Central Glow -->
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60vw] h-[60vw] bg-white/5 rounded-full blur-[150px] pointer-events-none mix-blend-screen"></div>
+
+        <!-- Huge Background Logo (Expanded) -->
+        <img src="{{ url_for('static', filename='images/Logo_Vector_Recreado.svg') }}" alt="Background" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150vw] md:w-[80vw] opacity-5 pointer-events-none drop-shadow-2xl grayscale mix-blend-overlay">
+
+        <div class="w-full max-w-md px-6 relative z-10">
+            <div class="text-center mb-8 flex flex-col items-center">
+                <!-- Animated Logo above login -->
+                <img src="{{ url_for('static', filename='images/Logo_Vector_Recreado.svg') }}" alt="Global Car" class="h-24 w-auto object-contain mb-6 drop-shadow-[0_10px_20px_rgba(0,51,160,0.5)] logo-spin-grow">
+                
+                <h1 class="text-4xl font-black text-white tracking-widest drop-shadow-md uppercase">Panel Admin</h1>
+                <div class="h-1 w-16 bg-gradient-to-r from-gc-blue to-gc-orange mx-auto mt-4 rounded-full"></div>
+                <p class="text-gray-400 mt-4 font-bold tracking-widest text-sm uppercase">Acceso Restringido</p>
+            </div>
+
+            <!-- Glassmorphism Login Card -->
+            <div class="bg-white/5 backdrop-blur-2xl border border-white/10 rounded-3xl p-8 shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
+                {% if error %}
+                <div class="bg-red-500/20 border border-red-500/50 text-red-200 px-4 py-3 rounded-xl text-sm font-bold mb-6 text-center shadow-inner">
+                    {{ error }}
+                </div>
+                {% endif %}
+
+                <form action="{{ url_for('login') }}" method="POST" class="space-y-6">
+                    <!-- Username -->
+                    <div>
+                        <label class="block text-gray-300 text-sm font-bold mb-2 uppercase tracking-wide">Usuario de Sistema</label>
+                        <div class="relative group">
+                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-500 group-focus-within:text-gc-orange transition-colors">
+                                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                            </div>
+                            <input type="text" name="username" required autocomplete="off" class="w-full bg-black/40 border border-white/10 rounded-xl py-3 pl-11 pr-4 text-white placeholder-gray-600 focus:outline-none focus:border-gc-orange focus:ring-1 focus:ring-gc-orange focus:bg-black/60 transition-all font-medium" placeholder="Ingrese su credencial">
+                        </div>
+                    </div>
+
+                    <!-- Password -->
+                    <div>
+                        <label class="block text-gray-300 text-sm font-bold mb-2 uppercase tracking-wide">Contraseña Segura</label>
+                        <div class="relative group">
+                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-500 group-focus-within:text-gc-orange transition-colors">
+                                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                            </div>
+                            <input type="password" name="password" required class="w-full bg-black/40 border border-white/10 rounded-xl py-3 pl-11 pr-4 text-white placeholder-gray-600 focus:outline-none focus:border-gc-orange focus:ring-1 focus:ring-gc-orange focus:bg-black/60 transition-all font-medium" placeholder="••••••••">
+                        </div>
+                    </div>
+
+                    <!-- Submit -->
+                    <button type="submit" id="entrar-btn" class="mt-8 w-full relative overflow-hidden bg-gradient-to-r from-gc-blue to-[#0047b3] text-white font-black py-4 px-6 rounded-xl shadow-[0_10px_20px_rgba(0,0,0,0.5)] group outline-none" style="opacity: 1; visibility: visible; display: block;">
+                        <span class="relative z-10 tracking-[0.2em] uppercase text-sm pointer-events-none">ENTRAR</span>
+                        <div class="absolute inset-0 bg-gradient-to-r from-gc-orange to-[#ff4500] translate-y-[100%] group-hover:translate-y-0 transition-transform duration-500 ease-in-out pointer-events-none"></div>
+                        <!-- Shine Effect -->
+                        <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-[150%] group-hover:animate-[shine_1s_ease-out_forwards] pointer-events-none"></div>
+                    </button>
+                </form>
+            </div>
+            
+            <!-- Back to home -->
+            <div class="text-center mt-8">
+                <a href="/" class="inline-flex items-center justify-center gap-2 text-gray-500 hover:text-white text-sm font-bold tracking-widest uppercase transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                    Portal Público
+                </a>
+            </div>
+        </div>
+    </section>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            // Animaciones GSAP Premium
+            const tl = gsap.timeline();
+
+            // 1. Nebulosas flotantes (efecto respiración y movimiento espacial)
+            gsap.fromTo(".bg-gc-blue\\/10", 
+                { opacity: 0, scale: 0.5 }, 
+                { opacity: 1, scale: 1, duration: 3, ease: "power3.out" }
+            );
+            gsap.to(".bg-gc-blue\\/10", {
+                y: "40px", x: "-30px", rotation: 10, duration: 6, repeat: -1, yoyo: true, ease: "sine.inOut"
+            });
+
+            gsap.fromTo(".bg-gc-orange\\/5", 
+                { opacity: 0, scale: 0.5 }, 
+                { opacity: 1, scale: 1, duration: 3, ease: "power3.out", delay: 0.7 }
+            );
+            gsap.to(".bg-gc-orange\\/5", {
+                y: "-40px", x: "30px", rotation: -10, duration: 7, repeat: -1, yoyo: true, ease: "sine.inOut"
+            });
+
+            // 2. Animación en Cascada del Contenido (Timeline)
+            tl.from("h1.text-4xl", { y: -50, opacity: 0, duration: 1.2, ease: "back.out(1.5)" })
+              .from(".h-1.w-16", { scaleX: 0, opacity: 0, transformOrigin: "center", duration: 0.8, ease: "power2.out" }, "-=0.6")
+              .from("p.text-gray-400", { y: 20, opacity: 0, duration: 0.8, ease: "power2.out", letterSpacing: "15px" }, "-=0.5")
+              
+            // 3. Aparición 3D de la tarjeta Glassmorphism
+              .from(".backdrop-blur-2xl", { 
+                  y: 60, opacity: 0, rotationX: 10, transformPerspective: 1000, 
+                  duration: 1.2, ease: "power3.out" 
+              }, "-=0.4")
+              
+            // 4. Inputs apareciendo suavemente
+              .from("form > div", { x: -30, opacity: 0, duration: 0.8, stagger: 0.15, ease: "power3.out" }, "-=0.8")
+              
+            // 5. Botón final con impacto elástico y arreglamos problemas de visibilidad
+              .from("#entrar-btn", { scale: 0.8, opacity: 0, duration: 0.7, ease: "back.out(1.7)", clearProps: "all" }, "-=0.4")
+              
+            // 6. Enlace de retorno desvanecido
+              .from(".text-center.mt-8 a", { opacity: 0, y: 10, duration: 1, ease: "power1.inOut" }, "-=0.4");
+              
+            // INTERACCIONES EXTRA:
+
+            // A) Input Focus Glow (Efecto futurista al escribir)
+            const inputs = document.querySelectorAll("input");
+            inputs.forEach(input => {
+                input.addEventListener("focus", () => {
+                    gsap.to(input.parentElement, {
+                        scale: 1.02,
+                        boxShadow: "0 0 15px rgba(255, 102, 0, 0.3)",
+                        duration: 0.3,
+                        ease: "power2.out"
+                    });
+                });
+                input.addEventListener("blur", () => {
+                    gsap.to(input.parentElement, {
+                        scale: 1,
+                        boxShadow: "none",
+                        duration: 0.3,
+                        ease: "power2.in"
+                    });
+                });
+            });
+
+            // B) Tarjeta reactiva al movimiento del Mouse
+            const card = document.querySelector(".backdrop-blur-2xl");
+            card.addEventListener("mousemove", (e) => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left - rect.width / 2;
+                const y = e.clientY - rect.top - rect.height / 2;
+                
+                gsap.to(card, {
+                    rotationY: x / 40,
+                    rotationX: -y / 40,
+                    ease: "power1.out",
+                    transformPerspective: 1000,
+                    duration: 0.5
+                });
+            });
+            
+            card.addEventListener("mouseleave", () => {
+                gsap.to(card, {
+                    rotationY: 0, rotationX: 0,
+                    ease: "power3.out", duration: 1
+                });
+            });
+
+            // C) MAGNETIC BUTTON EFFECT (El botón es atraído por tu mouse como gravedad)
+            const button = document.querySelector("#entrar-btn");
+            button.addEventListener("mousemove", (e) => {
+                const rect = button.getBoundingClientRect();
+                const x = e.clientX - rect.left - rect.width / 2;
+                const y = e.clientY - rect.top - rect.height / 2;
+                
+                // Mueve el botón ligeramente hacia el ratón
+                gsap.to(button, {
+                    x: x * 0.3,
+                    y: y * 0.3,
+                    duration: 0.3,
+                    ease: "power2.out"
+                });
+                // También mueve el texto (span) creando un efecto parallax ("3D Parallax Inside")
+                gsap.to(button.querySelector("span"), {
+                    x: x * 0.15,
+                    y: y * 0.15,
+                    duration: 0.3,
+                    ease: "power2.out"
+                });
+            });
+
+            button.addEventListener("mouseleave", () => {
+                // Al salir el mouse, el botón "rebota" de vuelta al centro
+                gsap.to(button, {
+                    x: 0,
+                    y: 0,
+                    duration: 0.5,
+                    ease: "elastic.out(1, 0.3)"
+                });
+                gsap.to(button.querySelector("span"), {
+                    x: 0,
+                    y: 0,
+                    duration: 0.5,
+                    ease: "elastic.out(1, 0.3)"
+                });
+            });
+
+        });
+    </script>
+  </body>
+</html>

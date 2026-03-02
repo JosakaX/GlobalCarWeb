@@ -1,0 +1,101 @@
+<svg viewBox="0 0 1000 500" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" style="transform: translateZ(0); shape-rendering: geometricPrecision;">
+  <defs>
+    <!-- Silver Gradient for Rings and Banners -->
+    <linearGradient id="silverBase" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="20%" stop-color="#d4d4d4"/>
+      <stop offset="50%" stop-color="#9a9a9a"/>
+      <stop offset="80%" stop-color="#d4d4d4"/>
+      <stop offset="100%" stop-color="#808080"/>
+    </linearGradient>
+
+    <!-- Blue Gradient for Globe Background -->
+    <linearGradient id="blueGlobe" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#006bde"/>
+      <stop offset="50%" stop-color="#003c77"/>
+      <stop offset="100%" stop-color="#001632"/>
+    </linearGradient>
+
+    <!-- Stronger Blue Gradient for Text -->
+    <linearGradient id="blueText" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0080ff"/>
+      <stop offset="45%" stop-color="#004ea1"/>
+      <stop offset="100%" stop-color="#001b3b"/>
+    </linearGradient>
+
+    <!-- Red Gradient -->
+    <linearGradient id="redLightning" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ff8585"/>
+      <stop offset="50%" stop-color="#ff1c1c"/>
+      <stop offset="100%" stop-color="#a80000"/>
+    </linearGradient>
+
+    <!-- Drop Shadow for 3D Effect -->
+    <filter id="dropShadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="3" dy="8" stdDeviation="5" flood-color="#000000" flood-opacity="0.5"/>
+    </filter>
+  </defs>
+
+  <g filter="url(#dropShadow)">
+    <!-- Silver Wings (Top Left) -->
+    <polygon points="330,195 10,180 330,210" fill="url(#silverBase)" />
+    <polygon points="330,205 35,195 330,220" fill="url(#silverBase)" />
+
+    <!-- Silver Wings (Top Right) -->
+    <polygon points="670,195 990,180 670,210" fill="url(#silverBase)" />
+    <polygon points="670,205 965,195 670,220" fill="url(#silverBase)" />
+
+    <!-- Red Lightning/Wings (Bottom Left) -->
+    <polygon points="330,305 10,320 330,290" fill="url(#redLightning)" />
+    <polygon points="330,295 35,305 330,280" fill="url(#redLightning)" />
+
+    <!-- Red Lightning/Wings (Bottom Right) -->
+    <polygon points="670,305 990,320 670,290" fill="url(#redLightning)" />
+    <polygon points="670,295 965,305 670,280" fill="url(#redLightning)" />
+  </g>
+
+  <!-- Globe Silver Outer Stroke -->
+  <circle cx="500" cy="250" r="189" fill="url(#silverBase)" filter="url(#dropShadow)" />
+  <!-- Globe Blue Stroke -->
+  <circle cx="500" cy="250" r="182" fill="#003c77" />
+  <!-- Globe Outer Ring -->
+  <circle cx="500" cy="250" r="175" fill="url(#silverBase)" />
+  <!-- Globe Inner Blue -->
+  <circle cx="500" cy="250" r="150" fill="url(#blueGlobe)" />
+
+  <!-- Grid Lines (Globe) -->
+  <g stroke="url(#silverBase)" stroke-width="4.5" fill="none" opacity="0.95">
+    <!-- Vertical Center -->
+    <line x1="500" y1="100" x2="500" y2="400" />
+    <!-- Vertical Arcs -->
+    <path d="M 500 100 A 65 150 0 0 1 500 400 A 65 150 0 0 1 500 100" />
+    <path d="M 500 100 A 120 150 0 0 1 500 400 A 120 150 0 0 1 500 100" />
+    
+    <!-- Horizontal Arcs -->
+    <path d="M 353 200 A 147 35 0 0 1 647 200" />
+    <path d="M 353 300 A 147 35 0 0 0 647 300" />
+    
+    <path d="M 400 145 A 100 20 0 0 1 600 145" />
+    <path d="M 400 355 A 100 20 0 0 0 600 355" />
+  </g>
+
+  <!-- Main Horizontal Banner - Metallic outer stroke -->
+  <rect x="126" y="181" width="748" height="138" rx="69" fill="url(#silverBase)" filter="url(#dropShadow)"/>
+  <!-- Main Horizontal Banner - Blue outer stroke -->
+  <rect x="133" y="188" width="734" height="124" rx="62" fill="#003c77" />
+  <!-- Main Horizontal Banner - Silver Fill (Background of Global Car text) -->
+  <rect x="140" y="195" width="720" height="110" rx="55" fill="url(#silverBase)"/>
+  <!-- Inner ring detail -->
+  <rect x="148" y="203" width="704" height="94" rx="47" fill="none" stroke="#666666" stroke-width="1" opacity="0.3"/>
+
+  <!-- Text Setup: Stretched vertically and narrowed horizontally for mobile readability -->
+  <g transform="translate(500, 250) scale(0.85, 1.45) translate(-500, -250)">
+    <g font-family="Arial, Helvetica, sans-serif" font-weight="900" font-style="italic" font-size="78" letter-spacing="2" text-anchor="middle">
+      <!-- Text Shadow / Stroke -->
+      <text x="500" y="276" fill="none" stroke="#001632" stroke-width="9" stroke-linejoin="round">GLOBAL CAR</text>
+      <!-- Text Fill. User requested "el borde blanco tambien es decir todo lo blanco es metalizado". 
+           So the stroke of the text is silver. -->
+      <text x="500" y="276" fill="url(#blueText)" stroke="url(#silverBase)" stroke-width="2.5" stroke-linejoin="round">GLOBAL CAR</text>
+    </g>
+  </g>
+</svg>
