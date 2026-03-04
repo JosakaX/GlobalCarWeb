@@ -29,16 +29,73 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     loadBrands();
 
+    // Función para comprimir una imagen usando Canvas
+    const compressImage = (file, maxWidth = 1920, maxHeight = 1080, quality = 0.8) => {
+        return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = (event) => {
+                const img = new Image();
+                img.src = event.target.result;
+                img.onload = () => {
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > height) {
+                        if (width > maxWidth) {
+                            height = Math.round((height *= maxWidth / width));
+                            width = maxWidth;
+                        }
+                    } else {
+                        if (height > maxHeight) {
+                            width = Math.round((width *= maxHeight / height));
+                            height = maxHeight;
+                        }
+                    }
+
+                    const canvas = document.createElement('canvas');
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    canvas.toBlob((blob) => {
+                        if (blob) {
+                            const compressedFile = new File([blob], file.name.replace(/\.[^/.]+$/, "") + ".jpg", {
+                                type: 'image/jpeg',
+                                lastModified: Date.now()
+                            });
+                            resolve(compressedFile);
+                        } else {
+                            resolve(file);
+                        }
+                    }, 'image/jpeg', quality);
+                };
+                img.onerror = () => resolve(file);
+            };
+            reader.onerror = () => resolve(file);
+        });
+    };
+
     // Lógica principal al seleccionar archivos
-    const handleFiles = (files) => {
-        const imageFiles = files.filter(f => f.type.startsWith('image/'));
+    const handleFiles = async (files) => {
+        const imageFiles = files.filter(f => f.type.startsWith('image/') || f.name.toLowerCase().match(/\.(jpe?g|png|webp|heic|heif)$/));
         
         if (imageFiles.length !== 4) {
             alert("⚠️ Selecciona exactamente 4 fotos del vehículo.");
             return;
         }
 
-        selectedFiles = imageFiles;
+        // Mostrar indicador de carga en los recuadros
+        previewGrid.innerHTML = '<div class="col-span-4 text-center py-8 text-gc-blue font-bold">Comprimiendo imágenes...</div>';
+
+        const compressedFiles = [];
+        for (let file of imageFiles) {
+            const compressed = await compressImage(file);
+            compressedFiles.push(compressed);
+        }
+
+        selectedFiles = compressedFiles;
         renderPreviews();
     };
 
@@ -53,10 +110,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 imgContainer.innerHTML = `
                     <img src="${e.target.result}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
                     <div class="absolute top-2 left-2 bg-gc-blue text-white text-xs w-6 h-6 flex items-center justify-center rounded-md font-bold shadow-md z-10">${index + 1}</div>
-                    <!-- Delete (placeholder functionality) -->
-                    <button class="absolute top-2 right-2 bg-red-500 text-white p-1.5 rounded-md opacity-0 group-hover:opacity-100 transition-opacity z-10 shadow-md">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                    </button>
                 `;
                 previewGrid.appendChild(imgContainer);
             }
@@ -133,7 +186,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: formData
             });
 
-            const data = await response.json();
+            const textResponse = await response.text();
+            let data;
+            try {
+                data = JSON.parse(textResponse);
+            } catch (e) {
+                console.error("Respuesta cruda del servidor:", textResponse);
+                throw new Error("El servidor devolvió un error (Posiblemente el archivo es muy pesado o hubo una falla interna).");
+            }
 
             if (response.ok) {
                 // Success

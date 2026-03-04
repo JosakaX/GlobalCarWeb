@@ -168,6 +168,54 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('edit-modal').classList.remove('flex');
     };
 
+    // Función para comprimir una imagen usando Canvas
+    const compressImage = (file, maxWidth = 1920, maxHeight = 1080, quality = 0.8) => {
+        return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = (event) => {
+                const img = new Image();
+                img.src = event.target.result;
+                img.onload = () => {
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > height) {
+                        if (width > maxWidth) {
+                            height = Math.round((height *= maxWidth / width));
+                            width = maxWidth;
+                        }
+                    } else {
+                        if (height > maxHeight) {
+                            width = Math.round((width *= maxHeight / height));
+                            height = maxHeight;
+                        }
+                    }
+
+                    const canvas = document.createElement('canvas');
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    canvas.toBlob((blob) => {
+                        if (blob) {
+                            const compressedFile = new File([blob], file.name.replace(/\.[^/.]+$/, "") + ".jpg", {
+                                type: 'image/jpeg',
+                                lastModified: Date.now()
+                            });
+                            resolve(compressedFile);
+                        } else {
+                            resolve(file);
+                        }
+                    }, 'image/jpeg', quality);
+                };
+                img.onerror = () => resolve(file);
+            };
+            reader.onerror = () => resolve(file);
+        });
+    };
+
     window.saveEditVehicle = async () => {
         const id = document.getElementById('edit-id').value;
         const make = document.getElementById('edit-make').value.trim();
@@ -204,8 +252,10 @@ document.addEventListener('DOMContentLoaded', () => {
             formData.append('status', status);
             formData.append('description', description);
 
+            // Comprimir imágenes si hay
             for (let i = 0; i < files.length; i++) {
-                formData.append(`image_${i}`, files[i]);
+                const compressed = await compressImage(files[i]);
+                formData.append(`image_${i}`, compressed);
             }
 
             const response = await fetch(`/api/vehicles/${id}`, {
@@ -213,9 +263,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: formData
             });
 
+            const textResponse = await response.text();
+            let data;
+            try {
+                data = JSON.parse(textResponse);
+            } catch (e) {
+                console.error("Respuesta cruda del servidor:", textResponse);
+                throw new Error("El servidor devolvió un error (Posiblemente el archivo es muy pesado o hubo una falla interna).");
+            }
+
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'No se pudo actualizar el vehículo');
+                throw new Error(data.error || 'No se pudo actualizar el vehículo');
             }
 
             closeEditModal();
