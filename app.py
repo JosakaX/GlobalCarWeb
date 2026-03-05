@@ -129,6 +129,9 @@ def update_vehicle(vehicle_id):
                 "description": request.form.get('description')
             }
             
+            if request.form.get('likes') is not None:
+                data["likes"] = int(request.form.get('likes'))
+            
             # Revisar si hay imagenes para actualizar
             images = []
             for key, file in request.files.items():

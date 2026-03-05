@@ -198,13 +198,20 @@
                             </div>
                         </div>
 
-                        <div>
-                            <label class="block text-sm font-bold text-gray-700 uppercase tracking-widest mb-2">Estado</label>
-                            <select id="edit-status" class="w-full px-5 py-3 rounded-xl border-2 border-gray-200 focus:ring-4 focus:ring-gc-blue/20 focus:border-gc-blue outline-none transition-all appearance-none font-bold bg-gray-50 focus:bg-white text-gray-900">
-                                <option value="available" class="text-gc-orange">🟢 Disponible</option>
-                                <option value="transit" class="text-gc-blue">🔵 En Tránsito (100 días)</option>
-                                <option value="sold" class="text-gray-500">⚫ Vendido</option>
-                            </select>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 uppercase tracking-widest mb-2">Estado</label>
+                                <select id="edit-status" class="w-full px-5 py-3 rounded-xl border-2 border-gray-200 focus:ring-4 focus:ring-gc-blue/20 focus:border-gc-blue outline-none transition-all appearance-none font-bold bg-gray-50 focus:bg-white text-gray-900">
+                                    <option value="available" class="text-gc-orange">🟢 Disponible</option>
+                                    <option value="transit" class="text-gc-blue">🔵 En Tránsito</option>
+                                    <option value="sold" class="text-gray-500">⚫ Vendido</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 uppercase tracking-widest mb-2">(Me gusta 💙)</label>
+                                <input type="number" id="edit-likes" min="0" placeholder="Ej. 100" class="w-full px-5 py-3 rounded-xl border-2 border-gray-200 focus:ring-4 focus:ring-gc-orange/20 focus:border-gc-orange outline-none transition-all font-bold bg-gray-50 focus:bg-white text-gray-900">
+                            </div>
                         </div>
 
                         <div>
@@ -256,5 +263,33 @@
             </div>
         </div>
 
-<script src="{{ url_for('static', filename='js/admin_inventory.js') }}"></script>
+        <!-- Confirm Delete Modal (Hidden) -->
+        <div id="delete-modal" class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-50 hidden flex-col items-center justify-center p-4">
+            <div class="bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden flex flex-col items-center text-center p-8 animate-fadeIn">
+                <div class="w-16 h-16 bg-red-100 rounded-full flex justify-center items-center mb-4">
+                    <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                </div>
+                <h3 class="text-2xl font-black text-gray-900 mb-2">¿Estás seguro?</h3>
+                <p class="text-gray-500 font-medium mb-8">Esta acción eliminará el vehículo de manera permanente. No podrás deshacerlo.</p>
+                
+                <input type="hidden" id="delete-vehicle-id">
+
+                <div class="flex gap-4 w-full">
+                    <button onclick="closeDeleteModal()" class="flex-1 px-4 py-3 rounded-xl font-bold bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors outline-none">Cancelar</button>
+                    <button onclick="confirmDeleteVehicle()" id="btn-confirm-delete" class="flex-1 px-4 py-3 rounded-xl font-bold bg-red-600 text-white hover:bg-red-700 transition-colors outline-none shadow-lg shadow-red-600/30">Sí, eliminar</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Modal para Mensajes Simples (Éxito) -->
+        <div id="success-modal" class="fixed inset-0 z-[60] hidden flex-col items-center justify-center p-4 bg-gray-900/50 backdrop-blur-sm">
+            <div class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-xs text-center border-t-8 border-green-500">
+                <svg class="w-16 h-16 text-green-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <h3 class="text-xl font-bold text-gray-900 mb-2" id="success-title">¡Éxito!</h3>
+                <p class="text-gray-600 font-medium mb-6" id="success-message">Operación exitosa.</p>
+                <button onclick="closeSuccessModal()" class="w-full py-3 bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold rounded-xl outline-none transition-colors">Aceptar</button>
+            </div>
+        </div>
+
+<script src="{{ url_for('static', filename='js/admin_inventory.js') }}?v=1.6"></script>
 </html>
