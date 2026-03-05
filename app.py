@@ -182,14 +182,19 @@ def get_vehicles():
         
         if search_term:
             # Construct the or_ filter dynamically
-            or_filters = [f"make.ilike.%{search_term}%", f"model.ilike.%{search_term}%"]
+            or_filters = [
+                f"make.ilike.%{search_term}%", 
+                f"model.ilike.%{search_term}%",
+                f"description.ilike.%{search_term}%",
+                f"status.ilike.%{search_term}%"
+            ]
             
             # If the search term is a number, also search in year and price
-            if search_term.replace('.', '', 1).isdigit():
-                # Extract year (integer part) in case they type a decimal
-                year_val = search_term.split('.')[0]
-                or_filters.append(f"year.eq.{year_val}")
-                or_filters.append(f"price.eq.{search_term}")
+            # Limpiamos el texto quitando $, comas y puntos. Así "50.000" o "50,000" se vuelve "50000"
+            cleaned_search = search_term.replace('$', '').replace(',', '').replace('.', '').strip()
+            if cleaned_search.isdigit():
+                or_filters.append(f"year.eq.{cleaned_search}")
+                or_filters.append(f"price.eq.{cleaned_search}")
                 
             query = query.or_(",".join(or_filters))
             
