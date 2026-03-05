@@ -97,7 +97,7 @@ document.addEventListener("DOMContentLoaded", () => {
                                 <div class="flex flex-wrap items-center gap-2 text-sm text-gray-600 mb-6 font-semibold">
                                     <span class="bg-gray-100/80 px-4 py-1.5 rounded-lg border border-gray-200/50">${vehicle.year || '2026'}</span>
                                     ${(vehicle.description || 'Consulta Detalles').split(',').map(tag => 
-                                        `<span class="bg-gray-100/80 px-4 py-1.5 rounded-lg border border-gray-200/50">${tag.trim()}</span>`
+                                        `<span class="bg-gray-100/80 px-4 py-1.5 rounded-lg border border-gray-200/50 truncate max-w-[140px]" title="${tag.trim()}">${tag.trim()}</span>`
                                     ).join('')}
                                 </div>
                             </div>
