@@ -3,6 +3,14 @@
 .env.local
 .env.*.local
 
+# Claves SSH y Certificados AWS (¡NUNCA subir a GitHub!)
+*.pem
+*.pub
+*.key
+*.p12
+*.pfx
+*KeyPair*
+
 # Byte-compiled / optimized / DLL files de Python
 __pycache__/
 *.py[cod]
