@@ -70,7 +70,7 @@ document.addEventListener("DOMContentLoaded", () => {
           const baseClass =
             "bg-white rounded-[2rem] overflow-hidden shadow-[0_10px_30px_rgba(0,0,0,0.04)] border border-gray-100 hover:shadow-[0_20px_50px_rgba(0,51,160,0.12)] hover:-translate-y-3 transition-all duration-500 group cursor-pointer relative flex flex-col";
           const carouselClass =
-            "min-w-[85vw] md:min-w-[45vw] lg:min-w-[calc(33.333%-1.4rem)] flex-shrink-0 snap-center";
+            "w-[85vw] max-w-[85vw] md:w-[45vw] md:max-w-[45vw] lg:w-[calc(33.333%-1.4rem)] lg:max-w-[calc(33.333%-1.4rem)] flex-shrink-0 snap-center";
           const opacityClass = vehicle.status === "sold" ? "opacity-75" : "";
 
           const card = document.createElement("div");
