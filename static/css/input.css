@@ -1,0 +1,95 @@
+/* Global Car — Tailwind CSS Input (v4)
+ * Este archivo se compila con: npx @tailwindcss/cli -i este-archivo -o static/css/tailwind_full.css --minify
+ */
+
+@import "tailwindcss";
+
+/* === Colores de Marca Global Car === */
+@theme {
+  --color-gc-blue: #0033A0;
+  --color-gc-orange: #FF6600;
+  --color-gc-silver: #C0C0C0;
+  --color-gc-dark: #111827;
+}
+
+/* === Custom CSS Extensions === */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Ocultar barra de scroll en el slider horizontal */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Drag & Drop aesthetics */
+#drop-zone {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Gradient text utility */
+.text-gradient {
+  background: linear-gradient(to right, #0033a0, #0052ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Line Clamp */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Infinite Marquee Animation for Brand Pills */
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-marquee {
+  animation: marquee 60s linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
+/* Logo spin animation */
+@keyframes spinGrow {
+  0% { transform: scale(0) rotate(0deg); opacity: 0; }
+  99% { transform: scale(1) rotate(360deg); opacity: 1; }
+  100% { transform: none; opacity: 1; }
+}
+
+.logo-spin-grow {
+  animation: spinGrow 1s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+/* Chat scroll */
+.chat-scroll {
+  scrollbar-width: auto;
+  scrollbar-color: rgba(255, 102, 0, 0.6) rgba(255, 255, 255, 0.05);
+}
+.chat-scroll::-webkit-scrollbar { width: 8px; }
+.chat-scroll::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+}
+.chat-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 102, 0, 0.6);
+  border-radius: 10px;
+}
+.chat-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 102, 0, 1);
+}

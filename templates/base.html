@@ -10,27 +10,8 @@
     <meta property="og:type" content="website">
     <meta name="robots" content="index, follow">
     <title>Global Car | Premium Vehicles</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Tailwind Config for exact Brand Colors -->
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            colors: {
-              "gc-blue": "#0033A0",
-              "gc-orange": "#FF6600",
-              "gc-silver": "#C0C0C0",
-              "gc-dark": "#111827",
-            },
-          },
-        },
-      };
-    </script>
-    <link
-      rel="stylesheet"
-      href="{{ url_for('static', filename='css/output.css') }}"
-    />
+    <!-- Tailwind CSS (compilado localmente - sin dependencia de CDN externo) -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/tailwind_full.css') }}" />
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap"
       rel="stylesheet"

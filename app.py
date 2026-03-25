@@ -1,16 +1,31 @@
 import os
 import uuid
+import time
+from collections import defaultdict
 from functools import wraps
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for, flash
 from supabase import create_client, Client
 from dotenv import load_dotenv
 
+# --- RATE LIMITING EN MEMORIA (para likes) ---
+# Estructura: { ip: [timestamp1, timestamp2, ...] }
+_likes_rate_map = defaultdict(list)
+LIKES_RATE_LIMIT = 5      # Máx 5 likes por ventana
+LIKES_RATE_WINDOW = 60    # Ventana de 60 segundos
+
 # Variables de entorno
 load_dotenv()
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
-ADMIN_USER = os.getenv("ADMIN_USER", "ADMIN")
-ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "ADMIN22554769")
+ADMIN_USER = os.getenv("ADMIN_USER")
+ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")
+
+# Verificación de seguridad al arrancar: credenciales son OBLIGATORIAS
+if not ADMIN_USER or not ADMIN_PASSWORD:
+    raise RuntimeError(
+        "[SECURITY] ADMIN_USER y ADMIN_PASSWORD deben estar definidos en el .env. "
+        "No se permite iniciar la app sin credenciales de administrador."
+    )
 
 # Solo inicializa Supabase si hay credenciales
 if SUPABASE_URL and SUPABASE_KEY:
@@ -43,10 +58,27 @@ def api_login_required(f):
 
 @app.after_request
 def add_security_headers(response):
+    # Previene MIME-type sniffing
     response.headers['X-Content-Type-Options'] = 'nosniff'
-    response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+    # Previene Clickjacking
+    response.headers['X-Frame-Options'] = 'DENY'
+    # XSS Protection legacy
     response.headers['X-XSS-Protection'] = '1; mode=block'
-    # Optional: response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains' # Descomentar para producción con HTTPS
+    # Fuerza HTTPS por 1 año (solo activo en producción con HTTPS)
+    if request.is_secure or os.getenv('FORCE_HSTS', 'false').lower() == 'true':
+        response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains; preload'
+    # Política de Seguridad de Contenido
+    response.headers['Content-Security-Policy'] = (
+        "default-src 'self'; "
+        "script-src 'self' 'unsafe-inline' cdn.tailwindcss.com; "
+        "style-src 'self' 'unsafe-inline' cdn.tailwindcss.com fonts.googleapis.com; "
+        "font-src 'self' fonts.gstatic.com; "
+        "img-src 'self' data: https://xfcdhztdpfmdowkluumo.supabase.co; "
+        "connect-src 'self' https://xfcdhztdpfmdowkluumo.supabase.co; "
+        "frame-ancestors 'none';"
+    )
+    # Ocultar tecnología de servidor
+    response.headers['Server'] = 'GlobalCar'
     return response
 
 @app.route('/')
@@ -65,10 +97,24 @@ def privacidad():
 def terminos():
     return render_template('terminos.html')
 
+# --- SEO & CRAWLERS ---
+@app.route('/robots.txt')
+def robots_txt():
+    """Sirve el archivo robots.txt para controlar indexacion de bots."""
+    from flask import send_from_directory
+    return send_from_directory('static', 'robots.txt', mimetype='text/plain')
+
+@app.route('/sitemap.xml')
+def sitemap_xml():
+    """Sirve el sitemap.xml para motores de busqueda."""
+    from flask import send_from_directory
+    return send_from_directory('static', 'sitemap.xml', mimetype='application/xml')
+
 @app.route('/admin')
 @login_required
 def admin():
-    return render_template('admin.html')
+    # /admin protegido: si no hay sesion, login_required redirige a /admin/login
+    return redirect(url_for('admin_inventory'))
 
 @app.route('/admin/login', methods=['GET', 'POST'])
 def login():
@@ -276,12 +322,23 @@ def upload_vehicle():
 
 @app.route('/api/vehicles/<vehicle_id>/like', methods=['POST'])
 def like_vehicle(vehicle_id):
-    """Incrementa los likes de un vehículo y devuelve el nuevo contador"""
+    """Incrementa los likes de un vehículo con rate limiting por IP."""
     if not supabase:
         return jsonify({"error": "Supabase credentials not configured."}), 500
-        
+
+    # --- Rate Limiting por IP ---
+    client_ip = request.headers.get('X-Forwarded-For', request.remote_addr)
+    now = time.time()
+    # Limpiar timestamps fuera de la ventana
+    _likes_rate_map[client_ip] = [
+        ts for ts in _likes_rate_map[client_ip] if now - ts < LIKES_RATE_WINDOW
+    ]
+    if len(_likes_rate_map[client_ip]) >= LIKES_RATE_LIMIT:
+        return jsonify({"error": "Demasiadas solicitudes. Intenta más tarde."}), 429
+    _likes_rate_map[client_ip].append(now)
+    # --- Fin Rate Limiting ---
+
     try:
-        # Get current likes
         response = supabase.table('vehicles').select('likes').eq('id', vehicle_id).execute()
         if not response.data:
             return jsonify({"error": "Vehicle not found"}), 404
@@ -289,16 +346,16 @@ def like_vehicle(vehicle_id):
         current_likes = response.data[0].get('likes') or 0
         new_likes = current_likes + 1
         
-        # Update likes
         update_res = supabase.table('vehicles').update({"likes": new_likes}).eq('id', vehicle_id).execute()
-        
         return jsonify({"message": "Liked successfully", "likes": new_likes}), 200
         
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
 @app.route('/api/settings', methods=['GET'])
+@api_login_required
 def get_settings():
+    """Configuración del sistema — requiere autenticación de admin."""
     if not supabase:
         return jsonify({}), 500
     try:

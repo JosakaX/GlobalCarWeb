@@ -50,4 +50,7 @@ ver_logo.html
 # ----------------------------------------------------------------------
 # static/images/vehicles/*
 # static/images/logos/*
-# !static/images/vehicles/.gitkeep
+# node_modules
+node_modules/
+package-lock.json
+package.json
