@@ -1,20 +1,7 @@
-# rifasmidas.com — robots.txt
-# Controlando qué rutas pueden indexar los motores de búsqueda
-
 User-agent: *
-# Bloquear rutas de administración y APIs internas
-Disallow: /admin
-Disallow: /admin/
-Disallow: /admin/login
-Disallow: /admin/inventory
-Disallow: /admin/logout
-Disallow: /api/
-
-# Permitir rutas públicas
 Allow: /
-Allow: /catalogo
-Allow: /privacidad
-Allow: /terminos
+Disallow: /admin
+Disallow: /login
+Disallow: /api
 
-# Mapa del sitio
-Sitemap: https://rifasmidas.com/sitemap.xml
+Sitemap: https://www.globalcarweb.com/sitemap.xml

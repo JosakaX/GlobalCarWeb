@@ -1,343 +1,151 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Global Car Vzla. Encuentra tu vehículo ideal con nuestro inventario premium de carros nuevos y usados en Maracay, Venezuela.">
-    <meta name="keywords" content="Global Car Vzla, venta de vehiculos, concesionario maracay, carros importados, carros usados venezuela, compra programada vehiculos">
-    <meta property="og:title" content="Global Car | Premium Vehicles">
-    <meta property="og:description" content="Explora el inventario de Global Car y encuentra tu vehículo ideal. Ubicados en RM MOTORS VIP, Maracay.">
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Global Car | Tu Concesionario Digital{% endblock %}</title>
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="{% block description %}Encuentra los mejores vehículos con Global Car. Calidad, confianza y transparencia en un solo lugar.{% endblock %}">
+    <meta name="keywords" content="global car, venta de vehiculos, autos usados, coches premium, concesionario digital">
+    <meta name="author" content="JosakaX">
+    
+    <!-- Open Graph / Meta Social -->
     <meta property="og:type" content="website">
-    <meta name="robots" content="index, follow">
-    <title>Global Car | Premium Vehicles</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Tailwind Config for exact Brand Colors -->
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            colors: {
-              "gc-blue": "#0033A0",
-              "gc-orange": "#FF6600",
-              "gc-silver": "#C0C0C0",
-              "gc-dark": "#111827",
-            },
-          },
-        },
-      };
-    </script>
-    <link
-      rel="stylesheet"
-      href="{{ url_for('static', filename='css/output.css') }}"
-    />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap"
-      rel="stylesheet"
-    />
+    <meta property="og:title" content="Global Car | Concesionario de Élite">
+    <meta property="og:image" content="{{ url_for('static', filename='images/logos/logo_square.png') }}">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/logos/favicon.png') }}">
+
+    <!-- Stylesheets (Tailwind Full) -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/tailwind_full.css') }}">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet">
+
+    <!-- GSAP for scroll animations -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
     <style>
-      body {
-        font-family: "Inter", sans-serif;
-      }
-      @keyframes spinGrow {
-        0% { transform: scale(0) rotate(0deg); opacity: 0; }
-        99% { transform: scale(1) rotate(360deg); opacity: 1; }
-        100% { transform: none; opacity: 1; }
-      }
-      .logo-spin-grow {
-        animation: spinGrow 1s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-      }
-      
-      /* Estilos para el scroll del chat (siempre visible y manipulable) */
-      .chat-scroll {
-        scrollbar-width: auto;
-        scrollbar-color: rgba(255, 102, 0, 0.6) rgba(255, 255, 255, 0.05);
-      }
-      .chat-scroll::-webkit-scrollbar {
-        width: 8px;
-      }
-      .chat-scroll::-webkit-scrollbar-track {
-        background: rgba(255, 255, 255, 0.05); 
-        border-radius: 10px;
-      }
-      .chat-scroll::-webkit-scrollbar-thumb {
-        background: rgba(255, 102, 0, 0.6); 
-        border-radius: 10px;
-      }
-      .chat-scroll::-webkit-scrollbar-thumb:hover {
-        background: rgba(255, 102, 0, 1); 
-      }
+        body { font-family: 'Outfit', sans-serif; }
+        .glass-nav {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(0, 51, 160, 0.1);
+        }
     </style>
-  </head>
-  <body class="bg-gray-50 text-gray-900 antialiased min-h-screen flex flex-col">
-    <!-- Navegación Principal -->
-    <nav
-      id="main-nav"
-      class="fixed w-full z-50 bg-transparent transition-all duration-500 py-4"
-    >
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between items-center bg-[#002f6c]/90 backdrop-blur-xl border border-white/10 rounded-full h-[70px] shadow-[0_10px_30px_rgba(0,0,0,0.3)] px-6 md:px-8">
-          
-          <!-- Botón Menú Hamburguesa (Mobile) -->
-          <div class="md:hidden flex items-center">
-            <button id="mobile-menu-button" class="text-white hover:text-gc-orange transition-colors">
-              <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-            </button>
-          </div>
+    {% block head %}{% endblock %}
+</head>
+<body class="bg-gray-50 text-gray-900 antialiased overflow-x-hidden">
 
-          <!-- Logotipo -->
-          <div
-            class="flex-shrink-0 flex items-center cursor-pointer ml-4 md:ml-0"
-            onclick="window.location.href = '/'"
-          >
-            <!-- Logo para Mobile (Imagen + Texto) -->
-            <div class="md:hidden flex items-center">
-              <img src="{{ url_for('static', filename='images/Logo_Vector_Recreado.svg') }}" alt="Global Car Logo" class="h-8 w-auto object-contain mr-2 logo-spin-grow" />
-              <span class="text-2xl font-black text-white tracking-tighter"
-                >GLOBAL<span class="text-gc-orange pl-1">CAR</span></span
-              >
+    <!-- Navbar -->
+    <nav class="glass-nav fixed top-0 w-full z-50 transition-all duration-300 px-6 py-4">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            <a href="/" class="flex items-center space-x-2 group">
+                <img src="{{ url_for('static', filename='images/logos/logo.png') }}" alt="Global Car" class="h-10 transition-transform duration-500 group-hover:scale-110">
+                <span class="text-2xl font-black tracking-tighter text-gc-blue italic">GLOBAL CAR</span>
+            </a>
+
+            <!-- Desktop Menu -->
+            <div class="hidden md:flex items-center space-x-8">
+                <a href="/" class="text-sm font-semibold hover:text-gc-orange transition-colors">INICIO</a>
+                <a href="/#vehicles" class="text-sm font-semibold hover:text-gc-orange transition-colors">CATÁLOGO</a>
+                <a href="#contacto" class="text-sm font-semibold hover:text-gc-orange transition-colors">CONTACTO</a>
+                <a href="/admin" class="px-5 py-2 bg-gc-blue text-white rounded-full text-xs font-black tracking-widest hover:bg-gc-orange hover:shadow-lg transition-all active:scale-95">PANEL ADMIN</a>
             </div>
-            <!-- Logo para Tablet/Desktop (Solo Imagen) -->
-            <div class="hidden md:flex items-center">
-            <img src="{{ url_for('static', filename='images/Logo_Vector_Recreado.svg') }}" alt="Global Car Logo" class="hidden md:block h-10 w-auto object-contain logo-spin-grow" />
-            </div>
-          </div>
 
-          <!-- Menú Desktop -->
-          <div class="hidden md:flex space-x-1 items-center bg-white/5 rounded-full p-1 border border-white/10">
-            <a
-              href="/"
-              class="text-white hover:text-gc-orange font-bold text-sm uppercase tracking-widest px-6 py-2 rounded-full hover:bg-white/10 transition-all"
-              >Inicio</a
-            >
-            <a
-              href="/#planes-compra"
-              class="text-white hover:text-gc-orange font-bold text-sm uppercase tracking-widest px-6 py-2 rounded-full hover:bg-white/10 transition-all"
-              >Planes</a
-            >
-            <a
-              href="/#beneficios"
-              class="text-white hover:text-gc-orange font-bold text-sm uppercase tracking-widest px-6 py-2 rounded-full hover:bg-white/10 transition-all"
-              >Beneficios</a
-            >
-            <a
-              href="/#inventory"
-              class="text-white hover:text-gc-orange font-bold text-sm uppercase tracking-widest px-6 py-2 rounded-full hover:bg-white/10 transition-all"
-              >Destacados</a
-            >
-            <a
-              href="/catalogo"
-              class="text-white hover:text-gc-orange font-bold text-sm uppercase tracking-widest px-6 py-2 rounded-full hover:bg-white/10 transition-all"
-              >Catálogo</a
-            >
-            <a
-              href="#visitanos"
-              class="text-white hover:text-gc-orange font-bold text-sm uppercase tracking-widest px-6 py-2 rounded-full hover:bg-white/10 transition-all"
-              >Visítanos</a
-            >
-          </div>
-
-          <!-- Botones Derecha -->
-          <div class="flex items-center space-x-3">
-            <button
-              onclick="window.open('https://wa.me/584243437649', '_blank')"
-              class="bg-gradient-to-r from-[#ff8c42] to-gc-orange border border-[#ffb380] text-white px-6 py-2.5 rounded-full font-bold shadow-[0_0_15px_rgba(255,102,0,0.6)] hover:shadow-[0_0_25px_rgba(255,102,0,0.8)] hover:scale-105 transition-all outline-none uppercase tracking-wider text-sm hidden md:block"
-            >
-              Contactar
+            <!-- Mobile Menu Toggle -->
+            <button class="md:hidden text-gc-blue" id="menuToggle">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
             </button>
-          </div>
         </div>
-      </div>
     </nav>
 
-    <!-- Contenido Dinámico (Index o Admin) -->
-    <main class="flex-grow">{% block content %}{% endblock %}</main>
-
-    <!-- Pie de Página -->
-    <footer id="visitanos" class="bg-gc-dark text-white pt-16 pb-8 mt-auto border-t-4 border-gc-orange relative overflow-hidden">
-        <!-- Decoración de fondo -->
-      <div class="absolute top-0 right-0 w-96 h-96 bg-gc-blue/5 rounded-full blur-[100px] pointer-events-none -translate-y-1/2 translate-x-1/2"></div>
-      
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-12 mb-12">
-          
-          <!-- Columna 1: Marca -->
-          <div class="flex flex-col items-center md:items-start text-center md:text-left">
-            <img src="{{ url_for('static', filename='images/Logo_Vector_Recreado.svg') }}" alt="Global Car Logo" class="h-16 w-auto mb-6 object-contain logo-spin-grow" />
-            <p class="text-gray-400 font-medium leading-relaxed max-w-xs xl:max-w-sm">
-              Tu aliado de confianza en vehículos importados y nacionales. Brindando asesoría personalizada, transparencia y opciones flexibles a tu medida.
-            </p>
-          </div>
-          
-          <!-- Columna 2: Contacto & Ubicación -->
-          <div class="flex flex-col items-center md:items-start text-center md:text-left">
-            <h4 class="text-lg font-bold text-white mb-6 uppercase tracking-widest border-b-2 border-gc-blue pb-2 inline-block">Visítanos</h4>
-            
-            <a href="https://www.google.com/maps/place/RM+MOTORS+VIP/@10.2318102,-67.5447373,17z/data=!3m1!4b1!4m6!3m5!1s0x8e80231da12645f9:0x6e4b7b88881f594f!8m2!3d10.2318102!4d-67.5447373!16s%2Fg%2F11ycy6vyds?entry=ttu&g_ep=EgoyMDI2MDIyNS4wIKXMDSoASAFQAw%3D%3D" target="_blank" rel="noopener noreferrer" class="group flex flex-col md:flex-row items-center md:items-start gap-3 text-gray-400 hover:text-gc-orange transition-colors duration-300 mb-6 text-center md:text-left">
-              <svg class="w-6 h-6 flex-shrink-0 group-hover:scale-110 transition-transform duration-300 group-hover:text-gc-orange mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-              <span class="font-medium group-hover:underline decoration-1 underline-offset-4 leading-snug">Av. Intercomunal, Maracay,<br>Estado Aragua (RM MOTORS VIP)</span>
-            </a>
-            
-            <a href="tel:+584243437649" class="group flex items-center space-x-3 text-gray-400 hover:text-gc-blue transition-colors duration-300">
-              <svg class="w-6 h-6 flex-shrink-0 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
-              <span class="font-medium">Tel: +58 424-3437649</span>
-            </a>
-          </div>
-
-          <!-- Columna 3: Redes -->
-          <div class="flex flex-col items-center md:items-start text-center md:text-left">
-            <h4 class="text-lg font-bold text-white mb-6 uppercase tracking-widest border-b-2 border-gc-orange pb-2 inline-block">Comunidad</h4>
-            
-            <a href="https://www.instagram.com/globalcarvzla/?__pwa=1" target="_blank" rel="noopener noreferrer" class="flex items-center group cursor-pointer outline-none w-auto mb-4">
-              <div class="relative w-12 h-12 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-500 mr-4">
-                <!-- Animated gradient border/glow -->
-                <div class="absolute inset-0 bg-gradient-to-tr from-gc-blue to-gc-orange rounded-full shadow-[0_5px_15px_rgba(255,102,0,0.3)] group-hover:shadow-[0_10px_30px_rgba(255,102,0,0.8)] transition-shadow duration-500"></div>
-                <!-- Icon -->
-                <svg class="relative w-6 h-6 text-white z-10" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
-              </div>
-              <span class="text-gray-400 font-bold tracking-widest text-sm uppercase group-hover:text-gc-orange transition-colors duration-300">@globalcarvzla</span>
-            </a>
-
-            <a href="https://wa.me/584243437649" target="_blank" rel="noopener noreferrer" class="flex items-center group cursor-pointer outline-none w-auto">
-              <div class="relative w-12 h-12 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-500 mr-4">
-                <!-- Animated gradient border/glow -->
-                <div class="absolute inset-0 bg-gradient-to-tr from-gc-orange to-gc-blue rounded-full shadow-[0_5px_15px_rgba(255,102,0,0.3)] group-hover:shadow-[0_10px_30px_rgba(255,102,0,0.8)] transition-shadow duration-500"></div>
-                <!-- Icon -->
-                <svg class="relative w-6 h-6 text-white z-10" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-              </div>
-              <span class="text-gray-400 font-bold tracking-widest text-sm uppercase group-hover:text-gc-orange transition-colors duration-300">WhatsApp</span>
-            </a>
-          </div>
-
-        </div>
-    
-        <!-- Abajo: Legal y Copyright -->
-        <div class="border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
-          <p class="text-gray-500 text-sm font-medium">
-            © 2026 Global Car. Todos los derechos reservados. Made by JosakaX
-          </p>
-          
-          <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-6 text-sm text-center md:text-right">
-            <a href="/privacidad" class="text-gray-500 hover:text-white hover:underline transition-colors duration-300">Política de Privacidad</a>
-            <a href="/terminos" class="text-gray-500 hover:text-white hover:underline transition-colors duration-300">Términos del Servicio</a>
-          </div>
-        </div>
-      </div>
-    </footer>
-
-    <!-- Chatbot Integrado -->
-    <div id="chatbot-wrapper" class="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-[100] flex flex-col items-end">
-        
-        <!-- Ventana de Chat (Oculta por defecto) -->
-        <div id="chat-window" class="hidden flex-col w-[92vw] sm:w-[380px] h-[75vh] sm:h-[600px] bg-[#001736]/95 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-2xl mb-4 overflow-hidden transition-all duration-300 origin-bottom-right scale-95 opacity-0">
-            <!-- Header -->
-            <div class="bg-gradient-to-r from-gc-blue to-[#001f60] p-4 flex justify-between items-center border-b border-white/10 shadow-md flex-shrink-0 z-20">
-                <div class="flex items-center gap-3">
-                    <div class="relative">
-                        <div class="w-10 h-10 rounded-full bg-gc-orange flex items-center justify-center shadow-inner">
-                            <span class="text-white font-black text-xl">GC</span>
-                        </div>
-                        <div class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-[#001f60]"></div>
-                    </div>
-                    <div>
-                        <h3 class="text-white font-black leading-tight text-lg tracking-wide">Asistente GC</h3>
-                        <p class="text-gc-orange font-bold text-xs uppercase tracking-widest">En Línea</p>
-                    </div>
-                </div>
-                <button id="close-chat-btn" class="text-white/70 hover:text-white hover:bg-white/10 p-2 rounded-lg transition-colors outline-none">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                </button>
-            </div>
-
-            <!-- Body del Chat (Acordeones FAQ) -->
-            <div class="flex-1 overflow-y-auto chat-scroll p-4 space-y-4 relative z-10" style="-webkit-overflow-scrolling: touch;">
-                <!-- Mensaje Inicial -->
-                <div class="flex items-start gap-2 mb-6">
-                    <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-gc-blue to-[#0047b3] flex-shrink-0 flex items-center justify-center text-white font-bold text-xs shadow-md">GC</div>
-                    <div class="bg-white/10 border border-white/5 text-gray-200 rounded-2xl rounded-tl-none p-4 shadow-lg text-sm leading-relaxed">
-                        ¡Hola! 👋 Bienvenido a Global Car. Soy tu asistente virtual. <strong>Toca cualquier pregunta para ver la respuesta:</strong>
-                    </div>
-                </div>
-
-                <!-- Opciones (Acordeones) -->
-                <div class="space-y-3">
-                    
-                    <!-- Item 1: Planes -->
-                    <div class="border border-white/10 bg-white/5 rounded-xl overflow-hidden transition-colors hover:border-gc-orange/50">
-                        <button onclick="window.toggleFaq('faq-planes')" class="w-full text-left p-3 flex justify-between items-center text-sm sm:text-base font-medium text-white hover:text-gc-orange transition-colors outline-none focus:outline-none">
-                            <span class="flex items-center gap-2">🚗 ¿Planes de financiamiento?</span>
-                            <svg id="icon-faq-planes" class="w-5 h-5 flex-shrink-0 transform transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                        </button>
-                        <div id="faq-planes" class="hidden px-4 pb-4 pt-1 text-sm text-gray-300 border-t border-white/10 mt-1 bg-black/20">
-                            Manejamos <strong>Planes desde el 50% de inicial</strong> a 12, 18, 24 y 36 meses sin intereses, y opciones por sistema de cuotas entregando el (50% de inicial).
-                        </div>
-                    </div>
-
-                    <!-- Item 2: Requisitos -->
-                    <div class="border border-white/10 bg-white/5 rounded-xl overflow-hidden transition-colors hover:border-gc-orange/50">
-                        <button onclick="window.toggleFaq('faq-requisitos')" class="w-full text-left p-3 flex justify-between items-center text-sm sm:text-base font-medium text-white hover:text-gc-orange transition-colors outline-none focus:outline-none">
-                            <span class="flex items-center gap-2">📋 ¿Requisitos para comprar?</span>
-                            <svg id="icon-faq-requisitos" class="w-5 h-5 flex-shrink-0 transform transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                        </button>
-                        <div id="faq-requisitos" class="hidden px-4 pb-4 pt-1 text-sm text-gray-300 border-t border-white/10 mt-1 bg-black/20">
-                            Para optar por tu vehículo solo necesitas:<br>✅ Cédula de Identidad<br>✅ RIF actualizado<br>✅ Referencia bancaria<br>✅ Monto inicial (si el plan lo amerita).
-                        </div>
-                    </div>
-
-                    <!-- Item 3: Ubicacion -->
-                    <div class="border border-white/10 bg-white/5 rounded-xl overflow-hidden transition-colors hover:border-gc-orange/50">
-                        <button onclick="window.toggleFaq('faq-ubicacion')" class="w-full text-left p-3 flex justify-between items-center text-sm sm:text-base font-medium text-white hover:text-gc-orange transition-colors outline-none focus:outline-none">
-                            <span class="flex items-center gap-2">📍 ¿Ubicación y horarios?</span>
-                            <svg id="icon-faq-ubicacion" class="w-5 h-5 flex-shrink-0 transform transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                        </button>
-                        <div id="faq-ubicacion" class="hidden px-4 pb-4 pt-1 text-sm text-gray-300 border-t border-white/10 mt-1 bg-black/20">
-                            📍 Visítanos en la Av. Intercomunal de Maracay, Estado Aragua (Sede RM MOTORS VIP).<br>🕒 Horario: Lunes a Sábados de 8:00 AM a 5:00 PM.
-                        </div>
-                    </div>
-
-                </div>
-
-                <!-- Boton Cierre/Asesor -->
-                <div class="mt-6">
-                    <button onclick="window.open('https://wa.me/584243437649', '_blank')" class="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-gc-blue to-[#0047e0] hover:from-gc-orange hover:to-[#ff8c42] text-white py-3 px-4 rounded-xl transition-all duration-300 font-bold shadow-[0_5px_15px_rgba(0,0,0,0.3)] hover:shadow-[0_5px_15px_rgba(255,102,0,0.4)] group outline-none">
-                        <svg class="w-5 h-5 group-hover:animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
-                        Quiero hablar con un Asesor
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Botón Flotante (Toggle) -->
-        <div class="relative flex items-center justify-center">
-            <!-- Efecto de onda pulsante permanente -->
-            <div class="absolute w-14 h-14 sm:w-16 sm:h-16 bg-gc-orange rounded-full animate-ping opacity-60"></div>
-            
-            <button id="toggle-chat-btn" class="relative z-10 w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-tr from-gc-orange to-[#ff8c42] rounded-full flex items-center justify-center shadow-[0_10px_25px_rgba(255,102,0,0.5)] hover:shadow-[0_15px_35px_rgba(255,102,0,0.7)] hover:scale-110 hover:-rotate-6 transition-all duration-300 outline-none group">
-                <svg class="w-7 h-7 sm:w-8 sm:h-8 text-white group-hover:animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path>
-                </svg>
-            </button>
-        </div>
+    <!-- Mobile Menu -->
+    <div id="mobileMenu" class="fixed inset-0 bg-gc-blue z-[100] translate-x-full transition-transform duration-500 flex flex-col items-center justify-center space-y-8 p-10">
+        <button id="closeMenu" class="absolute top-8 right-8 text-white">
+            <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+        <a href="/" class="text-4xl font-black text-white italic tracking-tighter hover:text-gc-orange">INICIO</a>
+        <a href="/#vehicles" class="text-4xl font-black text-white italic tracking-tighter hover:text-gc-orange">CATÁLOGO</a>
+        <a href="/admin" class="text-4xl font-black text-white italic tracking-tighter hover:text-gc-orange">ADMIN</a>
     </div>
 
-    <!-- Menú Mobile Flotante (Oculto por defecto) -->
-    <div id="mobile-menu" class="fixed inset-0 bg-black/95 z-[60] hidden flex-col items-center justify-center space-y-8 backdrop-blur-xl transition-opacity duration-300 opacity-0">
-      <button id="close-menu-button" class="absolute top-6 right-6 text-white hover:text-gc-orange transition-colors duration-200">
-          <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-      </button>
-      <a href="/" class="mobile-link text-white hover:text-gc-orange font-black text-3xl uppercase tracking-widest transition-all">Inicio</a>
-      <a href="/#planes-compra" class="mobile-link text-white hover:text-gc-orange font-black text-3xl uppercase tracking-widest transition-all">Planes</a>
-      <a href="/#beneficios" class="mobile-link text-white hover:text-gc-orange font-black text-3xl uppercase tracking-widest transition-all">Beneficios</a>
-      <a href="/#inventory" class="mobile-link text-white hover:text-gc-orange font-black text-3xl uppercase tracking-widest transition-all">Destacados</a>
-      <a href="/catalogo" class="mobile-link text-white hover:text-gc-orange font-black text-3xl uppercase tracking-widest transition-all">Catálogo</a>
-      <a href="#visitanos" class="mobile-link text-white hover:text-gc-orange font-black text-3xl uppercase tracking-widest transition-all">Visítanos</a>
-      <button onclick="window.open('https://wa.me/584243437649', '_blank')" class="mt-8 bg-gradient-to-r from-[#ff8c42] to-gc-orange text-white px-8 py-4 rounded-full font-black text-xl uppercase shadow-[0_0_20px_rgba(255,102,0,0.6)]">
-          Contactar
-      </button>
+    <!-- Main Content -->
+    <main class="min-h-screen pt-20">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gc-dark text-white py-20 px-6">
+        <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12">
+            <div class="col-span-1 md:col-span-2">
+                <h3 class="text-3xl font-black tracking-tighter italic mb-6">GLOBAL CAR</h3>
+                <p class="text-gray-400 max-w-md leading-relaxed">
+                    Estamos redefiniendo la experiencia de compra de vehículos en República Dominicana. 
+                    Tecnología, transparencia y un inventario de élite a tu alcance.
+                </p>
+            </div>
+            <div>
+                <h4 class="text-gc-orange font-black mb-6">OPCIONES</h4>
+                <ul class="space-y-4 text-sm text-gray-300">
+                    <li><a href="/" class="hover:text-white transition-colors">Inicio</a></li>
+                    <li><a href="/#catalogo" class="hover:text-white transition-colors">Vehículos</a></li>
+                    <li><a href="/admin" class="hover:text-white transition-colors">Vendedores</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="text-gc-orange font-black mb-6">SÍGUENOS</h4>
+                <div class="flex space-x-4">
+                    <a href="#" class="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center hover:bg-gc-blue hover:border-gc-blue transition-all">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="max-w-7xl mx-auto border-t border-white/10 mt-16 pt-8 text-center text-xs text-gray-500">
+            &copy; 2026 Global Car - Todos los derechos reservados. Desarrollado con ❤️ por Antigravity.
+        </div>
+    </footer>
+
+    <!-- Chat Bubbles Overlay (Example) -->
+    <div class="fixed bottom-6 right-6 z-50">
+        <button id="chatBtn" class="bg-gc-orange p-4 rounded-full shadow-2xl hover:scale-110 active:scale-90 transition-all text-white">
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
+        </button>
     </div>
 
     <!-- Scripts -->
-    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
-    {% block scripts %}{% endblock %}
-  </body>
+    <script>
+        // Menu Toggle
+        const menuToggle = document.getElementById('menuToggle');
+        const closeMenu = document.getElementById('closeMenu');
+        const mobileMenu = document.getElementById('mobileMenu');
+
+        menuToggle.addEventListener('click', () => {
+            mobileMenu.classList.remove('translate-x-full');
+        });
+
+        closeMenu.addEventListener('click', () => {
+            mobileMenu.classList.add('translate-x-full');
+        });
+
+        // Sticky Navbar Effect
+        window.addEventListener('scroll', () => {
+            const nav = document.querySelector('nav');
+            if (window.scrollY > 50) {
+                nav.classList.add('py-2', 'shadow-xl');
+                nav.classList.remove('py-4');
+            } else {
+                nav.classList.remove('py-2', 'shadow-xl');
+                nav.classList.add('py-4');
+            }
+        });
+    </script>
+</body>
 </html>

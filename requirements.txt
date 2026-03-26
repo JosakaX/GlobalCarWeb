@@ -1,3 +1,9 @@
-Flask==3.0.0
-supabase==2.3.4
-python-dotenv==1.0.0
+Flask==3.1.0
+supabase==2.11.0
+python-dotenv==1.0.1
+websockets==13.0
+gotrue==2.10.0
+realtime==2.0.0
+postgrest==0.10.6
+storage3==0.10.1
+supafunc==0.4.1
