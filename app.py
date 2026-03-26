@@ -1,430 +1,244 @@
 import os
 import uuid
 import time
+import json
+import logging
+import traceback
 from collections import defaultdict
 from functools import wraps
-from flask import Flask, render_template, request, jsonify, session, redirect, url_for, flash
+from flask import Flask, render_template, request, jsonify, session, redirect, url_for, flash, abort
 from supabase import create_client, Client
 from dotenv import load_dotenv
 
-# --- RATE LIMITING EN MEMORIA (para likes) ---
-# Estructura: { ip: [timestamp1, timestamp2, ...] }
+# --- CONFIGURACIÓN INICIAL ---
+load_dotenv()
+
+# Rate limiting en memoria (para likes)
 _likes_rate_map = defaultdict(list)
 LIKES_RATE_LIMIT = 5      # Máx 5 likes por ventana
 LIKES_RATE_WINDOW = 60    # Ventana de 60 segundos
 
-# Variables de entorno
-load_dotenv()
-SUPABASE_URL = os.getenv("SUPABASE_URL")
-SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+# Logging configuration
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
+
+app = Flask(__name__)
+app.secret_key = os.getenv("FLASK_SECRET_KEY", "dev-key-12345")
+
+# Supabase connection
+supabase_url = os.getenv("SUPABASE_URL")
+supabase_key = os.getenv("SUPABASE_KEY")
+
+# Credenciales de Admin
 ADMIN_USER = os.getenv("ADMIN_USER")
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")
 
-# Verificación de seguridad al arrancar: credenciales son OBLIGATORIAS
 if not ADMIN_USER or not ADMIN_PASSWORD:
-    raise RuntimeError(
-        "[SECURITY] ADMIN_USER y ADMIN_PASSWORD deben estar definidos en el .env. "
-        "No se permite iniciar la app sin credenciales de administrador."
-    )
+    logger.error("[SECURITY] ADMIN_USER y ADMIN_PASSWORD deben estar definidos en el .env.")
+    # En desarrollo local ponemos defaults si no están, pero logger avisa
+    ADMIN_USER = ADMIN_USER or "admin"
+    ADMIN_PASSWORD = ADMIN_PASSWORD or "1234"
 
-# Solo inicializa Supabase si hay credenciales
-if SUPABASE_URL and SUPABASE_KEY:
-    supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
-else:
+# Inicialización del cliente de Supabase
+try:
+    if supabase_url and supabase_key:
+        supabase: Client = create_client(supabase_url, supabase_key)
+        logger.info("Cliente de Supabase inicializado correctamente")
+    else:
+        logger.error("Error: SUPABASE_URL o SUPABASE_KEY no configurados en .env")
+        supabase = None
+except Exception as e:
+    logger.error(f"Error fatal inicializando Supabase: {str(e)}")
     supabase = None
 
-app = Flask(__name__)
-# Secret key for session encryption
-app.secret_key = os.getenv("FLASK_SECRET_KEY", os.urandom(24))
-# Max tamaño de upload (para evitar bloqueos)
-app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 50 MB
+# --- DECORADORES Y SEGURIDAD ---
 
-# --- AUTH DECORATORS ---
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if not session.get('logged_in'):
-            return redirect(url_for('login'))
-        return f(*args, **kwargs)
-    return decorated_function
-
-def api_login_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if not session.get('logged_in'):
-            return jsonify({"error": "No autorizado. Inicie sesión nuevamente."}), 401
+            return redirect(url_for('login', next=request.url))
         return f(*args, **kwargs)
     return decorated_function
 
 @app.after_request
 def add_security_headers(response):
-    # Previene MIME-type sniffing
     response.headers['X-Content-Type-Options'] = 'nosniff'
-    # Previene Clickjacking
-    response.headers['X-Frame-Options'] = 'DENY'
-    # XSS Protection legacy
+    response.headers['X-Frame-Options'] = 'SAMEORIGIN'
     response.headers['X-XSS-Protection'] = '1; mode=block'
-    # Fuerza HTTPS por 1 año (solo activo en producción con HTTPS)
-    if request.is_secure or os.getenv('FORCE_HSTS', 'false').lower() == 'true':
-        response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains; preload'
-    # Política de Seguridad de Contenido
+    
+    # Política de Seguridad de Contenido (CSP)
     response.headers['Content-Security-Policy'] = (
         "default-src 'self'; "
-        "script-src 'self' 'unsafe-inline' cdn.tailwindcss.com; "
+        "script-src 'self' 'unsafe-inline' cdn.tailwindcss.com https://cdnjs.cloudflare.com; "
         "style-src 'self' 'unsafe-inline' cdn.tailwindcss.com fonts.googleapis.com; "
         "font-src 'self' fonts.gstatic.com; "
-        "img-src 'self' data: https://xfcdhztdpfmdowkluumo.supabase.co; "
-        "connect-src 'self' https://xfcdhztdpfmdowkluumo.supabase.co; "
-        "frame-ancestors 'none';"
+        "img-src 'self' data: https://*.supabase.co; "
+        "connect-src 'self' https://*.supabase.co; "
     )
-    # Ocultar tecnología de servidor
+    
+    # HSTS
+    if request.is_secure or os.getenv('FORCE_HSTS', 'false').lower() == 'true':
+        response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains; preload'
+        
     response.headers['Server'] = 'GlobalCar'
     return response
 
+# --- RUTAS PÚBLICAS ---
+
 @app.route('/')
-def index():
-    return render_template('index.html')
+def home():
+    try:
+        # Obtener vehículos recientes
+        vehicles_query = supabase.table("vehicles").select("*").order("created_at", desc=True).limit(8).execute()
+        vehicles = vehicles_query.data if vehicles_query.data else []
+        
+        # Obtener marcas para el filtro
+        marcas_query = supabase.table("marcas").select("*").order("name").execute()
+        marcas = marcas_query.data if marcas_query.data else []
+        
+        # Obtener configuración del sitio
+        site_settings = supabase.table("site_settings").select("*").limit(1).execute().data
+        settings = site_settings[0] if site_settings else {}
+        
+        return render_template('index.html', vehicles=vehicles, marcas=marcas, settings=settings)
+    except Exception as e:
+        logger.error(f"Error en home: {str(e)}")
+        return render_template('index.html', vehicles=[], marcas=[], settings={})
 
-@app.route('/catalogo')
-def catalogo():
-    return render_template('catalogo.html')
+@app.route('/vehicle/<int:id>')
+def vehicle_detail(id):
+    try:
+        query = supabase.table("vehicles").select("*").eq("id", id).single().execute()
+        vehicle = query.data
+        if not vehicle:
+            abort(404)
+        return render_template('vehicle.html', vehicle=vehicle)
+    except Exception as e:
+        logger.error(f"Error en detalle vehiculo {id}: {str(e)}")
+        abort(404)
 
-@app.route('/privacidad')
-def privacidad():
-    return render_template('privacidad.html')
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if session.get('logged_in'):
+        return redirect(url_for('admin'))
 
-@app.route('/terminos')
-def terminos():
-    return render_template('terminos.html')
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+        
+        if username == ADMIN_USER and password == ADMIN_PASSWORD:
+            session['logged_in'] = True
+            session.permanent = True
+            logger.info(f"Login exitoso para: {username}")
+            return redirect(url_for('admin'))
+        else:
+            logger.warning(f"Intento de login fallido para: {username}")
+            return render_template('login.html', error="Credenciales inválidas")
+            
+    return render_template('login.html')
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('home'))
 
 # --- SEO & CRAWLERS ---
+
 @app.route('/robots.txt')
 def robots_txt():
-    """Sirve el archivo robots.txt para controlar indexacion de bots."""
     from flask import send_from_directory
     return send_from_directory('static', 'robots.txt', mimetype='text/plain')
 
 @app.route('/sitemap.xml')
 def sitemap_xml():
-    """Sirve el sitemap.xml para motores de busqueda."""
     from flask import send_from_directory
     return send_from_directory('static', 'sitemap.xml', mimetype='application/xml')
+
+# --- RUTAS DE ADMINISTRACIÓN ---
 
 @app.route('/admin')
 @login_required
 def admin():
-    # /admin protegido: si no hay sesion, login_required redirige a /admin/login
-    return redirect(url_for('admin_inventory'))
-
-@app.route('/admin/login', methods=['GET', 'POST'])
-def login():
-    if session.get('logged_in'):
-        return redirect(url_for('admin_inventory'))
+    try:
+        vehicles_query = supabase.table("vehicles").select("*").order("created_at", desc=True).execute()
+        vehicles = vehicles_query.data if vehicles_query.data else []
         
-    error = None
-    if request.method == 'POST':
-        user = request.form.get('username')
-        pwd = request.form.get('password')
+        marcas_query = supabase.table("marcas").select("*").order("name").execute()
+        marcas = marcas_query.data if marcas_query.data else []
         
-        if user == ADMIN_USER and pwd == ADMIN_PASSWORD:
-            session['logged_in'] = True
-            return redirect(url_for('admin_inventory'))
-        else:
-            error = "Credenciales incorrectas. Verifique e intente nuevamente."
-            
-    return render_template('login.html', error=error)
+        return render_template('admin.html', vehicles=vehicles, marcas=marcas)
+    except Exception as e:
+        logger.error(f"Error en dashboard admin: {str(e)}")
+        return render_template('admin.html', vehicles=[], marcas=[], error="Error cargando datos de Supabase")
 
-@app.route('/admin/logout')
-def logout():
-    session.pop('logged_in', None)
-    return redirect(url_for('login'))
+# --- API RUTAS (CRUD VEHÍCULOS) ---
 
-@app.route('/admin/inventory')
+@app.route('/api/vehicle', methods=['POST'])
 @login_required
-def admin_inventory():
-    return render_template('admin_inventory.html')
-
-@app.route('/api/vehicles/<vehicle_id>', methods=['DELETE'])
-@api_login_required
-def delete_vehicle(vehicle_id):
-    """Elimina un vehículo del catálogo"""
-    if not supabase:
-        return jsonify({"error": "Supabase credentials not configured."}), 500
+def add_vehicle():
     try:
-        response = supabase.table('vehicles').delete().eq('id', vehicle_id).execute()
-        return jsonify({"message": "Vehicle deleted successfully", "data": response.data})
+        data = request.form.to_dict()
+        response = supabase.table("vehicles").insert(data).execute()
+        return jsonify({"status": "success", "data": response.data})
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"status": "error", "message": str(e)}), 500
 
-@app.route('/api/vehicles/<vehicle_id>', methods=['PUT'])
-@api_login_required
-def update_vehicle(vehicle_id):
-    """Actualiza la información de un vehículo"""
-    if not supabase:
-        return jsonify({"error": "Supabase credentials not configured."}), 500
+@app.route('/api/vehicle/<int:id>', methods=['PUT', 'DELETE'])
+@login_required
+def update_delete_vehicle(id):
     try:
-        if request.is_json:
-            data = request.json
-        else:
-            data = {
-                "make": request.form.get('make'),
-                "model": request.form.get('model'),
-                "year": int(request.form.get('year', 2026)),
-                "price": float(request.form.get('price', 0)),
-                "status": request.form.get('status'),
-                "description": request.form.get('description')
-            }
-            
-            # Revisar si hay imagenes para actualizar
-            images = []
-            for key, file in request.files.items():
-                if file and file.filename != '':
-                    images.append(file)
-            
-            if images:
-                if len(images) != 4:
-                    return jsonify({"error": "Si vas a actualizar fotos, exactamente 4 imágenes son obligatorias"}), 400
-                
-                import datetime
-                make = data.get('make', 'Desconocido').replace(' ', '_')
-                date_str = datetime.datetime.now().strftime('%Y-%m-%d')
-                
-                image_urls = []
-                for img in images:
-                    file_extension = img.filename.split('.')[-1]
-                    unique_filename = f"{make}/{date_str}/{uuid.uuid4()}.{file_extension}"
-                    file_data = img.read()
-                    res = supabase.storage.from_('vehicle-images').upload(unique_filename, file_data, {"content-type": img.content_type})
-                    public_url = supabase.storage.from_('vehicle-images').get_public_url(unique_filename)
-                    image_urls.append(public_url)
-                
-                data['images'] = image_urls
-                
-        if not data:
-            return jsonify({"error": "No data provided"}), 400
+        if request.method == 'DELETE':
+            supabase.table("vehicles").delete().eq("id", id).execute()
+            return jsonify({"status": "success"})
         
-        # update fields in supabase
-        response = supabase.table('vehicles').update(data).eq('id', vehicle_id).execute()
-        return jsonify({"message": "Vehicle updated successfully", "data": response.data})
+        data = request.json
+        response = supabase.table("vehicles").update(data).eq("id", id).execute()
+        return jsonify({"status": "success", "data": response.data})
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 @app.route('/api/vehicles', methods=['GET'])
 def get_vehicles():
-    """Trae todos los vehículos del catálogo"""
     if not supabase:
-        return jsonify({"error": "Supabase credentials not configured."}), 500
-        
+        return jsonify({"error": "Supabase connection failed"}), 500
     try:
-        # Check for query parameters for filtering
-        make = request.args.get('make')
-        search_term = request.args.get('search')
-        limit = request.args.get('limit', type=int)
-        
-        query = supabase.table('vehicles').select('*')
-        
-        if make:
-            query = query.ilike('make', f'%{make}%')
-        
-        if search_term:
-            # Construct the or_ filter dynamically
-            or_filters = [f"make.ilike.%{search_term}%", f"model.ilike.%{search_term}%"]
-            
-            # If the search term is a number, also search in year and price
-            if search_term.replace('.', '', 1).isdigit():
-                # Extract year (integer part) in case they type a decimal
-                year_val = search_term.split('.')[0]
-                or_filters.append(f"year.eq.{year_val}")
-                or_filters.append(f"price.eq.{search_term}")
-                
-            query = query.or_(",".join(or_filters))
-            
-        featured = request.args.get('featured')
-        
-        if featured == 'true':
-            # order by likes if featured
-            query = query.order('likes', desc=True)
-        else:
-            query = query.order('created_at', desc=True)
-        
-        if limit is not None:
-            query = query.limit(limit)
-            
+        query = supabase.table('vehicles').select('*').order('created_at', desc=True)
         response = query.execute()
         return jsonify(response.data)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@app.route('/api/vehicles', methods=['POST'])
-@api_login_required
-def upload_vehicle():
-    """Sube un nuevo vehículo con imágenes (o actualiza a futuro). Upload images a Supabase Storage y guarda details"""
-    if not supabase:
-        return jsonify({"error": "Supabase credentials not configured."}), 500
-
-    try:
-        # Extraer Form Data
-        make = request.form.get('make')
-        model = request.form.get('model')
-        year = int(request.form.get('year', 2026))
-        price = float(request.form.get('price', 0))
-        status = request.form.get('status')
-        description = request.form.get('description')
-
-        # Manejador de imágenes (Son 4 las obligatorias según la UI)
-        images = []
-        for key, file in request.files.items():
-            if file and file.filename != '':
-                images.append(file)
-                
-        if len(images) != 4:
-            return jsonify({"error": "Exactamente 4 imágenes son obligatorias"}), 400
-
-        import datetime
-        make_folder = str(make).replace(' ', '_') if make else 'Desconocido'
-        date_str = datetime.datetime.now().strftime('%Y-%m-%d')
-        
-        image_urls = []
-        # Upload al bucket 'vehicle-images'
-        for img in images:
-            file_extension = img.filename.split('.')[-1]
-            unique_filename = f"{make_folder}/{date_str}/{uuid.uuid4()}.{file_extension}"
-            
-            # Subir a storage 
-            # asumiendo que leer el archivo y mandarlo
-            file_data = img.read()
-            res = supabase.storage.from_('vehicle-images').upload(unique_filename, file_data, {"content-type": img.content_type})
-            
-            # Obtener URL Pública
-            public_url = supabase.storage.from_('vehicle-images').get_public_url(unique_filename)
-            image_urls.append(public_url)
-
-        # Insertar a la base de datos
-        vehicle_data = {
-            "make": make,
-            "model": model,
-            "year": year,
-            "price": price,
-            "status": status,
-            "description": description,
-            "images": image_urls # Arreglo de strings
-        }
-
-        db_res = supabase.table('vehicles').insert(vehicle_data).execute()
-
-        # Opcional: Aquí podemos llamar al Webhook de n8n
-        # requests.post(N8N_WEBHOOK_URL, json=vehicle_data)
-
-        return jsonify({"message": "Vehicle created successfully", "data": db_res.data[0]}), 201
-
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-@app.route('/api/vehicles/<vehicle_id>/like', methods=['POST'])
+@app.route('/api/vehicles/<int:vehicle_id>/like', methods=['POST'])
 def like_vehicle(vehicle_id):
-    """Incrementa los likes de un vehículo con rate limiting por IP."""
-    if not supabase:
-        return jsonify({"error": "Supabase credentials not configured."}), 500
-
-    # --- Rate Limiting por IP ---
     client_ip = request.headers.get('X-Forwarded-For', request.remote_addr)
     now = time.time()
-    # Limpiar timestamps fuera de la ventana
-    _likes_rate_map[client_ip] = [
-        ts for ts in _likes_rate_map[client_ip] if now - ts < LIKES_RATE_WINDOW
-    ]
+    _likes_rate_map[client_ip] = [ts for ts in _likes_rate_map[client_ip] if now - ts < LIKES_RATE_WINDOW]
+    
     if len(_likes_rate_map[client_ip]) >= LIKES_RATE_LIMIT:
-        return jsonify({"error": "Demasiadas solicitudes. Intenta más tarde."}), 429
+        return jsonify({"error": "Demasiadas solicitudes"}), 429
+    
     _likes_rate_map[client_ip].append(now)
-    # --- Fin Rate Limiting ---
 
     try:
         response = supabase.table('vehicles').select('likes').eq('id', vehicle_id).execute()
-        if not response.data:
-            return jsonify({"error": "Vehicle not found"}), 404
-            
         current_likes = response.data[0].get('likes') or 0
         new_likes = current_likes + 1
-        
-        update_res = supabase.table('vehicles').update({"likes": new_likes}).eq('id', vehicle_id).execute()
-        return jsonify({"message": "Liked successfully", "likes": new_likes}), 200
-        
+        supabase.table('vehicles').update({"likes": new_likes}).eq('id', vehicle_id).execute()
+        return jsonify({"message": "Liked", "likes": new_likes})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@app.route('/api/settings', methods=['GET'])
-@api_login_required
-def get_settings():
-    """Configuración del sistema — requiere autenticación de admin."""
-    if not supabase:
-        return jsonify({}), 500
-    try:
-        res = supabase.table('site_settings').select('*').execute()
-        settings = {row['key']: row['value'] for row in res.data}
-        return jsonify(settings)
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+# --- ERROR HANDLERS ---
 
-@app.route('/api/settings/price_list/<int:card_id>', methods=['POST'])
-@api_login_required
-def update_price_list(card_id):
-    if not supabase:
-        return jsonify({"error": "Supabase credentials not configured."}), 500
-    try:
-        file = request.files.get('image')
-        if not file or file.filename == '':
-            return jsonify({"error": "No image provided"}), 400
-            
-        file_extension = file.filename.split('.')[-1]
-        unique_filename = f"price-lists/card_{card_id}_{uuid.uuid4()}.{file_extension}"
-        file_data = file.read()
-        
-        supabase.storage.from_('vehicle-images').upload(unique_filename, file_data, {"content-type": file.content_type})
-        public_url = supabase.storage.from_('vehicle-images').get_public_url(unique_filename)
-        
-        key = f'price_list_{card_id}'
-        supabase.table('site_settings').update({'value': public_url}).eq('key', key).execute()
-        
-        return jsonify({"message": "Updated successfully", "url": public_url})
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template('404.html'), 404
 
-@app.route('/api/marcas', methods=['GET'])
-def get_marcas():
-    if not supabase:
-        return jsonify({"error": "Supabase credentials not configured."}), 500
-    try:
-        response = supabase.table('marcas').select('*').order('nombre').execute()
-        return jsonify(response.data)
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-@app.route('/api/marcas', methods=['POST'])
-@api_login_required
-def create_marca():
-    if not supabase:
-        return jsonify({"error": "Supabase credentials not configured."}), 500
-    try:
-        data = request.json
-        if not data or not data.get('nombre'):
-            return jsonify({"error": "El nombre de la marca es obligatorio"}), 400
-        
-        response = supabase.table('marcas').insert({"nombre": data['nombre'].upper()}).execute()
-        return jsonify({"message": "Marca agregada exitosamente", "data": response.data[0]}), 201
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-@app.route('/api/marcas/<marca_id>', methods=['DELETE'])
-@api_login_required
-def delete_marca(marca_id):
-    if not supabase:
-        return jsonify({"error": "Supabase credentials not configured."}), 500
-    try:
-        response = supabase.table('marcas').delete().eq('id', marca_id).execute()
-        return jsonify({"message": "Marca eliminada exitosamente", "data": response.data})
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+@app.errorhandler(500)
+def server_error(e):
+    logger.error(f"Error 500: {str(e)}")
+    return render_template('500.html'), 500
 
 if __name__ == '__main__':
-    # Producción (Modo seguro, el debug revela vulnerabilidades al exterior)
-    app.run(debug=False, port=5000, host='0.0.0.0')
+    app.run(host='0.0.0.0', port=5000, debug=True)

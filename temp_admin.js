@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', () => {
+﻿document.addEventListener('DOMContentLoaded', () => {
     const tbody = document.getElementById('inventory-tbody');
     const totalCount = document.getElementById('total-count');
 
@@ -52,7 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 tbody.innerHTML = `
                     <tr>
                         <td colspan="6" class="py-12 text-center text-gray-500 font-medium text-lg">
-                            No hay vehículos en el inventario. <a href="/admin" class="text-gc-blue hover:underline">Sube uno nuevo</a>.
+                            No hay veh├¡culos en el inventario. <a href="/admin" class="text-gc-blue hover:underline">Sube uno nuevo</a>.
                         </td>
                     </tr>
                 `;
@@ -69,7 +69,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Status mapping
                 let statusHtml = '';
                 if (v.status === 'available') statusHtml = '<span class="bg-green-100 text-green-800 text-xs font-bold px-3 py-1 rounded-full border border-green-200 uppercase tracking-wide">Disponible</span>';
-                else if (v.status === 'transit') statusHtml = '<span class="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 rounded-full border border-blue-200 uppercase tracking-wide">En Tránsito</span>';
+                else if (v.status === 'transit') statusHtml = '<span class="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 rounded-full border border-blue-200 uppercase tracking-wide">En Tr├ínsito</span>';
                 else statusHtml = '<span class="bg-gray-100 text-gray-800 text-xs font-bold px-3 py-1 rounded-full border border-gray-200 uppercase tracking-wide">Vendido</span>';
 
                 tr.innerHTML = `
@@ -94,10 +94,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     </td>
                     <td class="py-4 pl-4 text-right">
                         <div class="flex justify-end gap-2">
-                            <button onclick="openEditModal('${v.id}')" class="text-gray-400 hover:text-gc-blue p-2 rounded-lg hover:bg-blue-50 transition-colors tooltip outline-none" title="Editar vehículo">
+                            <button onclick="openEditModal('${v.id}')" class="text-gray-400 hover:text-gc-blue p-2 rounded-lg hover:bg-blue-50 transition-colors tooltip outline-none" title="Editar veh├¡culo">
                                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
                             </button>
-                            <button onclick="deleteVehicle('${v.id}')" class="text-gray-400 hover:text-red-600 p-2 rounded-lg hover:bg-red-50 transition-colors tooltip outline-none" title="Eliminar vehículo">
+                            <button onclick="deleteVehicle('${v.id}')" class="text-gray-400 hover:text-red-600 p-2 rounded-lg hover:bg-red-50 transition-colors tooltip outline-none" title="Eliminar veh├¡culo">
                                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                             </button>
                         </div>
@@ -111,14 +111,19 @@ document.addEventListener('DOMContentLoaded', () => {
             tbody.innerHTML = `
                 <tr>
                     <td colspan="6" class="py-12 text-center text-red-500 font-bold text-lg">
-                        Error al cargar el inventario. Intenta refrescar la página.
+                        Error al cargar el inventario. Intenta refrescar la p├ígina.
                     </td>
                 </tr>
             `;
         }
     };
 
+    // Attach to window so onclick can see it
     window.deleteVehicle = async (id) => {
+        if (!confirm('ΓÜá∩╕Å ┬┐Est├ís seguro de que deseas ELIMINAR permanentemente este veh├¡culo? Esta acci├│n no se puede deshacer.')) {
+            return;
+        }
+
         try {
             const response = await fetch(`/api/vehicles/${id}`, {
                 method: 'DELETE'
@@ -126,11 +131,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (!response.ok) {
                 const errorData = await response.json();
-                throw new Error(errorData.error || 'No se pudo eliminar el vehículo');
+                throw new Error(errorData.error || 'No se pudo eliminar el veh├¡culo');
             }
 
             // Reload inventory
             await loadInventory();
+            
+            // Minimal toast/alert
+            alert('Veh├¡culo eliminado exitosamente del cat├ílogo.');
 
         } catch (error) {
             console.error('Delete error:', error);
@@ -139,7 +147,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     window.openEditModal = (id) => {
-        const vehicle = window.vehiclesData.find(v => String(v.id) === String(id));
+        const vehicle = window.vehiclesData.find(v => v.id === id);
         if (!vehicle) return;
 
         document.getElementById('edit-id').value = vehicle.id; // Corrected from .val
@@ -149,7 +157,6 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('edit-price').value = vehicle.price;
         document.getElementById('edit-status').value = vehicle.status;
         document.getElementById('edit-description').value = vehicle.description || '';
-        document.getElementById('edit-likes').value = vehicle.likes || 0;
         document.getElementById('edit-images').value = ''; // Reset files
 
         document.getElementById('edit-modal').classList.remove('hidden');
@@ -161,7 +168,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('edit-modal').classList.remove('flex');
     };
 
-    // Función para comprimir una imagen usando Canvas
+    // Funci├│n para comprimir una imagen usando Canvas
     const compressImage = (file, maxWidth = 1920, maxHeight = 1080, quality = 0.8) => {
         return new Promise((resolve) => {
             const reader = new FileReader();
@@ -217,17 +224,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const price = document.getElementById('edit-price').value;
         const status = document.getElementById('edit-status').value;
         const description = document.getElementById('edit-description').value.trim();
-        const likes = document.getElementById('edit-likes').value;
         const imagesInput = document.getElementById('edit-images');
 
         if (!make || !model || !year || !price) {
-            alert('Por favor, completa los campos requeridos (Marca, Modelo, Año, Precio).');
+            alert('Por favor, completa los campos requeridos (Marca, Modelo, A├▒o, Precio).');
             return;
         }
 
         const files = imagesInput.files;
         if (files.length > 0 && files.length !== 4) {
-            alert('Si vas a actualizar fotos, por favor sube exactamente 4 imágenes.');
+            alert('Si vas a actualizar fotos, por favor sube exactamente 4 im├ígenes.');
             return;
         }
 
@@ -245,9 +251,8 @@ document.addEventListener('DOMContentLoaded', () => {
             formData.append('price', price);
             formData.append('status', status);
             formData.append('description', description);
-            formData.append('likes', likes);
 
-            // Comprimir imágenes si hay
+            // Comprimir im├ígenes si hay
             for (let i = 0; i < files.length; i++) {
                 const compressed = await compressImage(files[i]);
                 formData.append(`image_${i}`, compressed);
@@ -264,16 +269,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 data = JSON.parse(textResponse);
             } catch (e) {
                 console.error("Respuesta cruda del servidor:", textResponse);
-                throw new Error("El servidor devolvió un error (Posiblemente el archivo es muy pesado o hubo una falla interna).");
+                throw new Error("El servidor devolvi├│ un error (Posiblemente el archivo es muy pesado o hubo una falla interna).");
             }
 
             if (!response.ok) {
-                throw new Error(data.error || 'No se pudo actualizar el vehículo');
+                throw new Error(data.error || 'No se pudo actualizar el veh├¡culo');
             }
 
             closeEditModal();
             await loadInventory();
-            alert('Vehículo actualizado exitosamente.');
+            alert('Veh├¡culo actualizado exitosamente.');
         } catch (error) {
             console.error('Update error:', error);
             alert('Error actualizando: ' + error.message);
@@ -338,7 +343,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const result = await response.json();
             setPreview(`preview-price-list-${cardId}`, result.url);
-            alert('Documento/Imagen actualizado exitosamente. Los cambios ya son visibles en la página principal.');
+            alert('Documento/Imagen actualizado exitosamente. Los cambios ya son visibles en la p├ígina principal.');
             fileInput.value = ''; // Reset
         } catch (error) {
             alert('Error actualizando la imagen: ' + error.message);
@@ -379,7 +384,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         ul.innerHTML = '';
         if (window.brandsData.length === 0) {
-            ul.innerHTML = '<li class="p-4 text-center text-gray-500 font-medium">No hay marcas configuradas. Añade una arriba.</li>';
+            ul.innerHTML = '<li class="p-4 text-center text-gray-500 font-medium">No hay marcas configuradas. A├▒ade una arriba.</li>';
             return;
         }
 
@@ -436,12 +441,12 @@ document.addEventListener('DOMContentLoaded', () => {
             renderBrandsList();
             input.value = '';
         } catch (error) {
-            alert('Error añadiendo marca: ' + error.message);
+            alert('Error a├▒adiendo marca: ' + error.message);
         }
     };
 
     window.deleteBrandFromDb = async (id, nombre) => {
-        if (!confirm(`¿Estás seguro de que deseas eliminar la marca "${nombre}"? \nEsta acción es irreversible y no asume cambios sobre los vehículos creados bajo esta marca.`)) {
+        if (!confirm(`┬┐Est├ís seguro de que deseas eliminar la marca "${nombre}"? \nEsta acci├│n es irreversible y no asume cambios sobre los veh├¡culos creados bajo esta marca.`)) {
             return;
         }
 
