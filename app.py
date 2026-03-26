@@ -22,7 +22,7 @@ LIKES_RATE_WINDOW = 60    # Ventana de 60 segundos
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates'))
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "dev-key-12345")
 
 # Supabase connection
